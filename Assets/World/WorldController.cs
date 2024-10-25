@@ -1,5 +1,5 @@
+using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 
 public class WorldController : MonoBehaviour
@@ -14,20 +14,22 @@ public class WorldController : MonoBehaviour
     private Vector3Int currentPlayerChunkPosition;
     private Dictionary<Vector3Int, GameObject> loadedChunks = new Dictionary<Vector3Int, GameObject>();
 
+    private Queue<Vector3Int> chunksToLoadQueue = new Queue<Vector3Int>();
+    private bool isLoadingChunks = false;
     private string savePath;
 
     void Start()
     {
-        player = Instantiate(playerPrefab);
-        player.GetComponent<PlayerController>().Initialize(this);
-        savePath = Path.Combine(Application.persistentDataPath, "WorldData");
+        player = Instantiate(playerPrefab, new Vector3(0f, 100f, 0f), transform.rotation);
+        savePath = Application.persistentDataPath + "/WorldData";
 
-        if (!Directory.Exists(savePath))
+        if (!System.IO.Directory.Exists(savePath))
         {
-            Directory.CreateDirectory(savePath);
+            System.IO.Directory.CreateDirectory(savePath);
         }
 
         UpdateLoadedChunks();
+
     }
 
     void Update()
@@ -38,12 +40,6 @@ public class WorldController : MonoBehaviour
         {
             currentPlayerChunkPosition = newChunkPosition;
             UpdateLoadedChunks();
-        }
-
-        // Save world data on 'P' press
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            SaveWorld();
         }
     }
 
@@ -69,19 +65,20 @@ public class WorldController : MonoBehaviour
                     Vector3Int chunkPosition = currentPlayerChunkPosition + new Vector3Int(x, y, z);
                     chunksToLoad.Add(chunkPosition);
 
-                    if (!loadedChunks.ContainsKey(chunkPosition))
+                    if (!loadedChunks.ContainsKey(chunkPosition) && !chunksToLoadQueue.Contains(chunkPosition))
                     {
-                        GameObject newChunk = Instantiate(chunkPrefab, chunkPosition * chunkSize, Quaternion.identity);
-                        ChunkController chunkController = newChunk.GetComponent<ChunkController>();
-                        chunkController.LoadChunk(savePath); // Load saved chunk data if available
-                        loadedChunks[chunkPosition] = newChunk;
+                        chunksToLoadQueue.Enqueue(chunkPosition);
                     }
                 }
             }
         }
 
-        List<Vector3Int> chunksToUnload = new List<Vector3Int>();
+        if (!isLoadingChunks)
+        {
+            StartCoroutine(LoadChunksInBackground());  // Call the coroutine correctly
+        }
 
+        List<Vector3Int> chunksToUnload = new List<Vector3Int>();
         foreach (var chunkPosition in loadedChunks.Keys)
         {
             if (!chunksToLoad.Contains(chunkPosition))
@@ -89,22 +86,31 @@ public class WorldController : MonoBehaviour
                 chunksToUnload.Add(chunkPosition);
             }
         }
-
         foreach (var chunkPosition in chunksToUnload)
         {
-            // Save chunk before unloading
             loadedChunks[chunkPosition].GetComponent<ChunkController>().SaveChunk(savePath);
             Destroy(loadedChunks[chunkPosition]);
             loadedChunks.Remove(chunkPosition);
         }
     }
 
-    void SaveWorld()
+    private IEnumerator LoadChunksInBackground()
     {
-        foreach (var chunk in loadedChunks.Values)
+        isLoadingChunks = true;
+
+        while (chunksToLoadQueue.Count > 0)
         {
-            chunk.GetComponent<ChunkController>().SaveChunk(savePath);
+            Vector3Int chunkPosition = chunksToLoadQueue.Dequeue();
+            if (!loadedChunks.ContainsKey(chunkPosition))
+            {
+                GameObject newChunk = Instantiate(chunkPrefab, chunkPosition * chunkSize, Quaternion.identity);
+                ChunkController chunkController = newChunk.GetComponent<ChunkController>();
+                chunkController.LoadChunk(savePath);
+                loadedChunks[chunkPosition] = newChunk;
+            }
+            yield return null;
         }
-        Debug.Log("World saved.");
+
+        isLoadingChunks = false;
     }
 }
