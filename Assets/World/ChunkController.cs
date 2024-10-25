@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
-public class Chunk : MonoBehaviour
+public class ChunkController : MonoBehaviour
 {
-    static int size = 13;
+    static int size = 7;
 
     bool[,,] voxelMap = new bool[size, size, size];
 
@@ -34,20 +36,6 @@ public class Chunk : MonoBehaviour
     //    }
     //}
 
-    //void InitializeVoxelMap()
-    //{
-    //    for (int x = 0; x < size; x++)
-    //    {
-    //        for (int y = 0; y < size; y++)
-    //        {
-    //            for (int z = 0; z < size; z++)
-    //            {
-    //                voxelMap[x, y, z] = Random.value < 1f / y / y;
-    //            }
-    //        }
-    //    }
-    //}
-
     void InitializeVoxelMap()
     {
         for (int x = 0; x < size; x++)
@@ -56,15 +44,29 @@ public class Chunk : MonoBehaviour
             {
                 for (int z = 0; z < size; z++)
                 {
-                    // Generate the height for this (x, z) using a sine wave
-                    float height = Mathf.Sin(x * 0.2f) * Mathf.Sin(z * 0.2f) * 3f + 3f;
-
-                    // Set the voxel to true if it's below the generated height, false otherwise
-                    voxelMap[x, y, z] = y <= height;
+                    voxelMap[x, y, z] = Random.value < 1f / y / y;
                 }
             }
         }
     }
+
+    //void InitializeVoxelMap()
+    //{
+    //    for (int x = 0; x < size; x++)
+    //    {
+    //        for (int y = 0; y < size; y++)
+    //        {
+    //            for (int z = 0; z < size; z++)
+    //            {
+    //                // Generate the height for this (x, z) using a sine wave
+    //                float height = Mathf.Sin(x * 0.2f) * Mathf.Sin(z * 0.2f) * 3f + 3f;
+
+    //                // Set the voxel to true if it's below the generated height, false otherwise
+    //                voxelMap[x, y, z] = y <= height;
+    //            }
+    //        }
+    //    }
+    //}
 
 
     //void InitializeVoxelMap()
@@ -223,5 +225,53 @@ public class Chunk : MonoBehaviour
             meshCollider = gameObject.AddComponent<MeshCollider>();
         }
         meshCollider.sharedMesh = meshFilter.mesh;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public void SaveChunk(string savePath)
+    {
+        // Create a file path for this chunk based on its position
+        string filePath = Path.Combine(savePath, $"Chunk_{transform.position.x}_{transform.position.y}_{transform.position.z}.dat");
+
+        // Open a file stream to save the chunk data
+        using (FileStream fs = new FileStream(filePath, FileMode.Create))
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(fs, voxelMap);
+        }
+    }
+
+    public void LoadChunk(string loadPath)
+    {
+        // Check if a saved file exists for this chunk
+        string filePath = Path.Combine(loadPath, $"Chunk_{transform.position.x}_{transform.position.y}_{transform.position.z}.dat");
+
+        if (File.Exists(filePath))
+        {
+            using (FileStream fs = new FileStream(filePath, FileMode.Open))
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                voxelMap = (bool[,,])formatter.Deserialize(fs);
+            }
+            // Call methods to regenerate the mesh if needed
+            AddVoxelData();
+            CreateMesh();
+        }
+        else
+        {
+            InitializeVoxelMap(); // Create a new voxel map if no saved file is found
+        }
     }
 }

@@ -373,6 +373,438 @@ public static class VoxelMeshData
         return vertices;
     }
 
+    public static List<Vector3> GenerateSoftVertices
+    (
+        bool[,,] adjacentVoxels,
+        Vector3 offset
+    )
+    {
+        List<Vector3> vertices = new List<Vector3>();
+
+        bool lbh = adjacentVoxels[0, 0, 0];
+        bool lbm = adjacentVoxels[0, 0, 1];
+        bool lbf = adjacentVoxels[0, 0, 2];
+        bool lmh = adjacentVoxels[0, 1, 0];
+        bool lmm = adjacentVoxels[0, 1, 1];
+        bool lmf = adjacentVoxels[0, 1, 2];
+        bool lth = adjacentVoxels[0, 2, 0];
+        bool ltm = adjacentVoxels[0, 2, 1];
+        bool ltf = adjacentVoxels[0, 2, 2];
+
+        bool mbh = adjacentVoxels[1, 0, 0];
+        bool mbm = adjacentVoxels[1, 0, 1];
+        bool mbf = adjacentVoxels[1, 0, 2];
+        bool mmh = adjacentVoxels[1, 1, 0];
+        // bool mmm = adjacentVoxels[1, 1, 1];
+        bool mmf = adjacentVoxels[1, 1, 2];
+        bool mth = adjacentVoxels[1, 2, 0];
+        bool mtm = adjacentVoxels[1, 2, 1];
+        bool mtf = adjacentVoxels[1, 2, 2];
+
+        bool rbh = adjacentVoxels[2, 0, 0];
+        bool rbm = adjacentVoxels[2, 0, 1];
+        bool rbf = adjacentVoxels[2, 0, 2];
+        bool rmh = adjacentVoxels[2, 1, 0];
+        bool rmm = adjacentVoxels[2, 1, 1];
+        bool rmf = adjacentVoxels[2, 1, 2];
+        bool rth = adjacentVoxels[2, 2, 0];
+        bool rtm = adjacentVoxels[2, 2, 1];
+        bool rtf = adjacentVoxels[2, 2, 2];
+
+        float deformation = 0.125f;
+
+        // INNER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // LBH (0)
+        vertices.Add(new Vector3(-0.5f, -0.5f, -0.5f)
+            - Vector3.left * deformation * (!lbh && !mbh && !lmh && !lbm && !lmm && (!mbm || !mmh) ? 1 : 0)
+            - Vector3.down * deformation * (!lbh && !mbh && !lmh && !lbm && !mbm && (!lmm || !mmh) ? 1 : 0)
+            - Vector3.back * deformation * (!lbh && !mbh && !lmh && !lbm && !mmh && (!lmm || !mbm) ? 1 : 0)
+            + offset);
+        // LBM (1)
+        vertices.Add(new Vector3(-0.5f, -0.5f, 0f) 
+            - (Vector3.left * deformation + Vector3.down * deformation) * (!lbm && !lmm && !mbm ? 1 : 0)
+            + offset);
+        // LBF (2)
+        vertices.Add(new Vector3(-0.5f, -0.5f, 0.5f) + offset);
+        // LMH (3)
+        vertices.Add(new Vector3(-0.5f, 0f, -0.5f)
+            - (Vector3.left * deformation + Vector3.back * deformation) * (!lmh && !lmm && !mmh ? 1 : 0)
+            + offset);
+        // LMF (4)
+        vertices.Add(new Vector3(-0.5f, 0f, 0.5f)
+            - (Vector3.left * deformation + Vector3.forward * deformation) * (!lmf && !lmm && !mmf ? 1 : 0) 
+            + offset);
+        // LTH (5)
+        vertices.Add(new Vector3(-0.5f, 0.5f, -0.5f) + offset);
+        // LTM (6)
+        vertices.Add(new Vector3(-0.5f, 0.5f, 0f)
+            - (Vector3.left * deformation + Vector3.up * deformation) * (!ltm && !lmm && !mtm ? 1 : 0) 
+            + offset);
+        // LTF (7)
+        vertices.Add(new Vector3(-0.5f, 0.5f, 0.5f) + offset);
+        // MBH (8)
+        vertices.Add(new Vector3(0f, -0.5f, -0.5f)
+            - (Vector3.down * deformation + Vector3.back * deformation) * (!mbh && !mbm && !mmh ? 1 : 0) 
+            + offset);
+        // MBF (9)
+        vertices.Add(new Vector3(0f, -0.5f, 0.5f)
+            - (Vector3.down * deformation + Vector3.forward * deformation) * (!mbf && !mbm && !mmf ? 1 : 0) 
+            + offset);
+        // MTH (10)
+        vertices.Add(new Vector3(0f, 0.5f, -0.5f)
+            - (Vector3.up * deformation + Vector3.back * deformation) * (!mth && !mtm && !mmh ? 1 : 0) 
+            + offset);
+        // MTF (11)
+        vertices.Add(new Vector3(0f, 0.5f, 0.5f)
+            - (Vector3.up * deformation + Vector3.forward * deformation) * (!mtf && !mtm && !mmf ? 1 : 0) 
+            + offset);
+        // RBH (12)
+        vertices.Add(new Vector3(0.5f, -0.5f, -0.5f) + offset);
+        // RBM (13)
+        vertices.Add(new Vector3(0.5f, -0.5f, 0f)
+            - (Vector3.right * deformation + Vector3.down * deformation) * (!rbm && !rmm && !mbm ? 1 : 0) 
+            + offset);
+        // RBF (14)
+        vertices.Add(new Vector3(0.5f, -0.5f, 0.5f) + offset);
+        // RMH (15)
+        vertices.Add(new Vector3(0.5f, 0f, -0.5f)
+            - (Vector3.right * deformation + Vector3.back * deformation) * (!rmh && !rmm && !mmh ? 1 : 0) 
+            + offset);
+        // RMF (16)
+        vertices.Add(new Vector3(0.5f, 0f, 0.5f)
+            - (Vector3.right * deformation + Vector3.forward * deformation) * (!rmf && !rmm && !mmf ? 1 : 0) 
+            + offset);
+        // RTH (17)
+        vertices.Add(new Vector3(0.5f, 0.5f, -0.5f) + offset);
+        // RTM (18)
+        vertices.Add(new Vector3(0.5f, 0.5f, 0f)
+            - (Vector3.right * deformation + Vector3.up * deformation) * (!rtm && !rmm && !mtm ? 1 : 0) 
+            + offset);
+        // RTF (19)
+        vertices.Add(new Vector3(0.5f, 0.5f, 0.5f) + offset);
+
+        // LEFT OUTER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // LBH (20)
+        vertices.Add
+            (new Vector3(-0.5f, -0.5f, -0.5f)
+            - Vector3.left * deformation * (!lbh && !mbh && !lmh && !lbm && !lmm && (!mbm || !mmh) ? 1 : 0)
+            - Vector3.down * deformation * (!lbh && !mbh && !lmh && !lbm && !mbm && (!lmm || !mmh) ? 1 : 0)
+            - Vector3.back * deformation * (!lbh && !mbh && !lmh && !lbm && !mmh && (!lmm || !mbm) ? 1 : 0)
+            + offset);
+        // LBM (21)
+        vertices.Add
+            (new Vector3(-0.5f, -0.5f, 0f)
+            + Vector3.left * 0.5f * (lbh || lbm || lbf || lmh || lmm || lmf ? 1 : 0)
+            + Vector3.down * 0.5f * (lbh || lbm || lbf /*|| mbh || mbm || mbf*/ ? 1 : 0)
+            - (Vector3.left * deformation + Vector3.down * deformation) * (!lbm && !lmm && !mbm ? 1 : 0)
+            + offset);
+        // LBF (22)
+        vertices.Add
+            (new Vector3(-0.5f, -0.5f, 0.5f)
+            + offset);
+        // LMH (23)
+        vertices.Add
+            (new Vector3(-0.5f, 0f, -0.5f)
+            + Vector3.left * 0.5f * (lbh || lmh || lth || lbm || lmm || ltm ? 1 : 0)
+            + Vector3.back * 0.5f * (lbh || lmh || lth /*|| mbh || mmh || mth*/ ? 1 : 0)
+            - (Vector3.left * deformation + Vector3.back * deformation) * (!lmh && !lmm && !mmh ? 1 : 0)
+            + offset);
+        // LMM (24)
+        vertices.Add
+            (new Vector3(-0.5f, 0f, 0f)
+            + Vector3.left * 0.5f * (lbh || lbm || lbf || lmh || lmm || lmf || lth || ltm || ltf ? 1 : 0)
+            + offset);
+        // LMF (25)
+        vertices.Add
+            (new Vector3(-0.5f, 0f, 0.5f)
+            + Vector3.left * 0.5f * (lbf || lmf || ltf || lbm || lmm || ltm ? 1 : 0)
+            + Vector3.forward * 0.5f * (lbf || lmf || ltf /*|| mbf || mmf || mtf*/ ? 1 : 0)
+            - (Vector3.left * deformation + Vector3.forward * deformation) * (!lmf && !lmm && !mmf ? 1 : 0)
+            + offset);
+        // LTH (26)
+        vertices.Add
+            (new Vector3(-0.5f, 0.5f, -0.5f)
+            + offset);
+        // LTM (27)
+        vertices.Add
+            (new Vector3(-0.5f, 0.5f, 0f)
+            + Vector3.left * 0.5f * (lth || ltm || ltf || lmh || lmm || lmf ? 1 : 0)
+            + Vector3.up * 0.5f * (lth || ltm || ltf /*|| mth || mtm || mtf*/ ? 1 : 0)
+            - (Vector3.left * deformation + Vector3.up * deformation) * (!ltm && !lmm && !mtm ? 1 : 0)
+            + offset);
+        // LTF (28)
+        vertices.Add
+            (new Vector3(-0.5f, 0.5f, 0.5f)
+            + offset);
+
+        // RIGHT OUTER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // RBH (29)
+        vertices.Add
+            (new Vector3(0.5f, -0.5f, -0.5f)
+            + offset);
+        // RBM (30)
+        vertices.Add
+            (new Vector3(0.5f, -0.5f, 0f)
+            + Vector3.right * 0.5f * (rbh || rbm || rbf || rmh || rmm || rmf ? 1 : 0)
+            + Vector3.down * 0.5f * (rbh || rbm || rbf /*|| mbh || mbm || mbf*/ ? 1 : 0)
+            - (Vector3.right * deformation + Vector3.down * deformation) * (!rbm && !rmm && !mbm ? 1 : 0)
+            + offset);
+        // RBF (31)
+        vertices.Add
+            (new Vector3(0.5f, -0.5f, 0.5f)
+            + offset);
+        // RMH (32)
+        vertices.Add
+            (new Vector3(0.5f, 0f, -0.5f)
+            + Vector3.right * 0.5f * (rbh || rmh || rth || rbm || rmm || rtm ? 1 : 0)
+            + Vector3.back * 0.5f * (rbh || rmh || rth /*|| mbh || mmh || mth*/ ? 1 : 0)
+            - (Vector3.right * deformation + Vector3.back * deformation) * (!rmh && !rmm && !mmh ? 1 : 0)
+            + offset);
+        // RMM (33)
+        vertices.Add
+            (new Vector3(0.5f, 0f, 0f)
+            + Vector3.right * 0.5f * (rbh || rbm || rbf || rmh || rmm || rmf || rth || rtm || rtf ? 1 : 0)
+            + offset);
+        // RMF (34)
+        vertices.Add
+            (new Vector3(0.5f, 0f, 0.5f)
+            + Vector3.right * 0.5f * (rbf || rmf || rtf || rbm || rmm || rtm ? 1 : 0)
+            + Vector3.forward * 0.5f * (rbf || rmf || rtf /*|| mbf || mmf || mtf*/ ? 1 : 0)
+            - (Vector3.right * deformation + Vector3.forward * deformation) * (!rmf && !rmm && !mmf ? 1 : 0)
+            + offset);
+        // RTH (35)
+        vertices.Add
+            (new Vector3(0.5f, 0.5f, -0.5f)
+            + offset);
+        // RTM (36)
+        vertices.Add
+            (new Vector3(0.5f, 0.5f, 0f)
+            + Vector3.right * 0.5f * (rth || rtm || rtf || rmh || rmm || rmf ? 1 : 0)
+            + Vector3.up * 0.5f * (rth || rtm || rtf /*|| mth || mtm || mtf*/ ? 1 : 0)
+            - (Vector3.right * deformation + Vector3.up * deformation) * (!rtm && !rmm && !mtm ? 1 : 0)
+            + offset);
+        // RTF (37)
+        vertices.Add
+            (new Vector3(0.5f, 0.5f, 0.5f)
+            + offset);
+
+        // BOTTOM OUTER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // LBH (38)
+        vertices.Add
+            (new Vector3(-0.5f, -0.5f, -0.5f)
+            - Vector3.left * deformation * (!lbh && !mbh && !lmh && !lbm && !lmm && (!mbm || !mmh) ? 1 : 0)
+            - Vector3.down * deformation * (!lbh && !mbh && !lmh && !lbm && !mbm && (!lmm || !mmh) ? 1 : 0)
+            - Vector3.back * deformation * (!lbh && !mbh && !lmh && !lbm && !mmh && (!lmm || !mbm) ? 1 : 0)
+            + offset);
+        // LBM (39)
+        vertices.Add
+            (new Vector3(-0.5f, -0.5f, 0f)
+            + Vector3.left * 0.5f * (lbh || lbm || lbf /*|| lmh || lmm || lmf*/ ? 1 : 0)
+            + Vector3.down * 0.5f * (lbh || lbm || lbf || mbh || mbm || mbf ? 1 : 0)
+            - (Vector3.left * deformation + Vector3.down * deformation) * (!lbm && !lmm && !mbm ? 1 : 0)
+            + offset);
+        // LBF (40)
+        vertices.Add
+            (new Vector3(-0.5f, -0.5f, 0.5f)
+            + offset);
+        // MBH (41)
+        vertices.Add
+            (new Vector3(0f, -0.5f, -0.5f)
+            + Vector3.down * 0.5f * (lbh || mbh || rbh || lbm || mbm || rbm ? 1 : 0)
+            + Vector3.back * 0.5f * (lbh || mbh || rbh /*|| lmh || mmh || rmh*/ ? 1 : 0)
+            - (Vector3.down * deformation + Vector3.back * deformation) * (!mbh && !mbm && !mmh ? 1 : 0)
+            + offset);
+        // MBM (42)
+        vertices.Add
+            (new Vector3(0f, -0.5f, 0f)
+            + Vector3.down * 0.5f * (lbh || lbm || lbf || mbh || mbm || mbf || rbh || rbm || rbf ? 1 : 0)
+            + offset);
+        // MBF (43)
+        vertices.Add
+            (new Vector3(0f, -0.5f, 0.5f)
+            + Vector3.down * 0.5f * (lbf || mbf || rbf || lbm || mbm || rbm ? 1 : 0)
+            + Vector3.forward * 0.5f * (lbf || mbf || rbf /*|| lmf || mmf || rmf*/ ? 1 : 0)
+            - (Vector3.down * deformation + Vector3.forward * deformation) * (!mbf && !mbm && !mmf ? 1 : 0)
+            + offset);
+        // RBH (44)
+        vertices.Add
+            (new Vector3(0.5f, -0.5f, -0.5f)
+            + offset);
+        // RBM (45)
+        vertices.Add
+            (new Vector3(0.5f, -0.5f, 0f)
+            + Vector3.right * 0.5f * (rbh || rbm || rbf /*|| rmh || rmm || rmf*/ ? 1 : 0)
+            + Vector3.down * 0.5f * (rbh || rbm || rbf || mbh || mbm || mbf ? 1 : 0)
+            - (Vector3.right * deformation + Vector3.down * deformation) * (!rbm && !rmm && !mbm ? 1 : 0)
+            + offset);
+        // RBF (46)
+        vertices.Add
+            (new Vector3(0.5f, -0.5f, 0.5f)
+            + offset);
+
+
+        // TOP OUTER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // LTH (47)
+        vertices.Add
+            (new Vector3(-0.5f, 0.5f, -0.5f)
+            + offset);
+        // LTM (48)
+        vertices.Add
+            (new Vector3(-0.5f, 0.5f, 0f)
+            + Vector3.left * 0.5f * (lth || ltm || ltf /*|| lmh || lmm || lmf*/ ? 1 : 0)
+            + Vector3.up * 0.5f * (lth || ltm || ltf || mth || mtm || mtf ? 1 : 0)
+            - (Vector3.left * deformation + Vector3.up * deformation) * (!ltm && !lmm && !mtm ? 1 : 0)
+            + offset);
+        // LTF (49)
+        vertices.Add
+            (new Vector3(-0.5f, 0.5f, 0.5f)
+            + offset);
+        // MTH (50)
+        vertices.Add
+            (new Vector3(0f, 0.5f, -0.5f)
+            + Vector3.up * 0.5f * (lth || mth || rth || ltm || mtm || rtm ? 1 : 0)
+            + Vector3.back * 0.5f * (lth || mth || rth /*|| lmh || mmh || rmh*/ ? 1 : 0)
+            - (Vector3.up * deformation + Vector3.back * deformation) * (!mth && !mtm && !mmh ? 1 : 0)
+            + offset);
+        // MTM (51)
+        vertices.Add
+            (new Vector3(0f, 0.5f, 0f)
+            + Vector3.up * 0.5f * (lth || ltm || ltf || mth || mtm || mtf || rth || rtm || rtf ? 1 : 0)
+            + offset);
+        // MTF (52)
+        vertices.Add
+            (new Vector3(0f, 0.5f, 0.5f)
+            + Vector3.up * 0.5f * (ltf || mtf || rtf || ltm || mtm || rtm ? 1 : 0)
+            + Vector3.forward * 0.5f * (ltf || mtf || rtf /*|| lmf || mmf || rmf*/ ? 1 : 0)
+            - (Vector3.up * deformation + Vector3.forward * deformation) * (!mtf && !mtm && !mmf ? 1 : 0)
+            + offset);
+        // RTH (53)
+        vertices.Add
+            (new Vector3(0.5f, 0.5f, -0.5f)
+            + offset);
+        // RTM (54)
+        vertices.Add
+            (new Vector3(0.5f, 0.5f, 0f)
+            + Vector3.right * 0.5f * (rth || rtm || rtf /*|| rmh || rmm || rmf*/ ? 1 : 0)
+            + Vector3.up * 0.5f * (rth || rtm || rtf || mth || mtm || mtf ? 1 : 0)
+            - (Vector3.right * deformation + Vector3.up * deformation) * (!rtm && !rmm && !mtm ? 1 : 0)
+            + offset);
+        // RTF (55)
+        vertices.Add
+            (new Vector3(0.5f, 0.5f, 0.5f)
+            + offset);
+
+
+        // BACK OUTER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // LBH (56)
+        vertices.Add
+            (new Vector3(-0.5f, -0.5f, -0.5f)
+            - Vector3.left * deformation * (!lbh && !mbh && !lmh && !lbm && !lmm && (!mbm || !mmh) ? 1 : 0)
+            - Vector3.down * deformation * (!lbh && !mbh && !lmh && !lbm && !mbm && (!lmm || !mmh) ? 1 : 0)
+            - Vector3.back * deformation * (!lbh && !mbh && !lmh && !lbm && !mmh && (!lmm || !mbm) ? 1 : 0)
+            + offset);
+        // LMH (57)
+        vertices.Add
+            (new Vector3(-0.5f, 0f, -0.5f)
+            + Vector3.left * 0.5f * (lbh || lmh || lth /*|| lbm || lmm || ltm*/ ? 1 : 0)
+            + Vector3.back * 0.5f * (lbh || lmh || lth || mbh || mmh || mth ? 1 : 0)
+            - (Vector3.left * deformation + Vector3.back * deformation) * (!lmh && !lmm && !mmh ? 1 : 0)
+            + offset);
+        // LTH (58)
+        vertices.Add
+            (new Vector3(-0.5f, 0.5f, -0.5f)
+            + offset);
+        // MBH (59)
+        vertices.Add
+            (new Vector3(0f, -0.5f, -0.5f)
+            + Vector3.down * 0.5f * (lbh || mbh || rbh /*|| lbm || mbm || rbm*/ ? 1 : 0)
+            + Vector3.back * 0.5f * (lbh || mbh || rbh || lmh || mmh || rmh ? 1 : 0)
+            - (Vector3.down * deformation + Vector3.back * deformation) * (!mbh && !mbm && !mmh ? 1 : 0)
+            + offset);
+        // MMH (60)
+        vertices.Add
+            (new Vector3(0f, 0f, -0.5f)
+            + Vector3.back * 0.5f * (lbh || lmh || lth || mbh || mmh || mth || rbh || rmh || rth ? 1 : 0)
+            + offset);
+        // MTH (61)
+        vertices.Add
+            (new Vector3(0f, 0.5f, -0.5f)
+            + Vector3.up * 0.5f * (lth || mth || rth /*|| ltm || mtm || rtm*/ ? 1 : 0)
+            + Vector3.back * 0.5f * (lth || mth || rth || lmh || mmh || rmh ? 1 : 0)
+            - (Vector3.up * deformation + Vector3.back * deformation) * (!mth && !mtm && !mmh ? 1 : 0)
+            + offset);
+        // RBH (62)
+        vertices.Add
+            (new Vector3(0.5f, -0.5f, -0.5f)
+            + offset);
+        // RMH (63)
+        vertices.Add
+            (new Vector3(0.5f, 0f, -0.5f)
+            + Vector3.right * 0.5f * (rbh || rmh || rth /*|| rbm || rmm || rtm*/ ? 1 : 0)
+            + Vector3.back * 0.5f * (rbh || rmh || rth || mbh || mmh || mth ? 1 : 0)
+            - (Vector3.right * deformation + Vector3.back * deformation) * (!rmh && !rmm && !mmh ? 1 : 0)
+            + offset);
+        // RTH (64)
+        vertices.Add
+            (new Vector3(0.5f, 0.5f, -0.5f)
+            + offset);
+
+        // FRONT OUTER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // LBF (65)
+        vertices.Add
+            (new Vector3(-0.5f, -0.5f, 0.5f)
+            + offset);
+        // LMF (66)
+        vertices.Add
+            (new Vector3(-0.5f, 0f, 0.5f)
+            + Vector3.left * 0.5f * (lbf || lmf || ltf /*|| lbm || lmm || ltm*/ ? 1 : 0)
+            + Vector3.forward * 0.5f * (lbf || lmf || ltf || mbf || mmf || mtf ? 1 : 0)
+            - (Vector3.left * deformation + Vector3.forward * deformation) * (!lmf && !lmm && !mmf ? 1 : 0)
+            + offset);
+        // LTF (67)
+        vertices.Add
+            (new Vector3(-0.5f, 0.5f, 0.5f)
+            + offset);
+        // MBF (68)
+        vertices.Add
+            (new Vector3(0f, -0.5f, 0.5f)
+            + Vector3.down * 0.5f * (lbf || mbf || rbf /*|| lbm || mbm || rbm*/ ? 1 : 0)
+            + Vector3.forward * 0.5f * (lbf || mbf || rbf || lmf || mmf || rmf ? 1 : 0)
+            - (Vector3.down * deformation + Vector3.forward * deformation) * (!mbf && !mbm && !mmf ? 1 : 0)
+            + offset);
+        // MMF (69)
+        vertices.Add
+            (new Vector3(0f, 0f, 0.5f)
+            + Vector3.forward * 0.5f * (lbf || lmf || ltf || mbf || mmf || mtf || rbf || rmf || rtf ? 1 : 0)
+            + offset);
+        // MTF (70)
+        vertices.Add
+            (new Vector3(0f, 0.5f, 0.5f)
+            + Vector3.up * 0.5f * (ltf || mtf || rtf /*|| ltm || mtm || rtm*/ ? 1 : 0)
+            + Vector3.forward * 0.5f * (ltf || mtf || rtf || lmf || mmf || rmf ? 1 : 0)
+            - (Vector3.up * deformation + Vector3.forward * deformation) * (!mtf && !mtm && !mmf ? 1 : 0)
+            + offset);
+        // RBF (71)
+        vertices.Add
+            (new Vector3(0.5f, -0.5f, 0.5f)
+            + offset);
+        // RMF (72)
+        vertices.Add
+            (new Vector3(0.5f, 0f, 0.5f)
+            + Vector3.right * 0.5f * (rbf || rmf || rtf /*|| rbm || rmm || rtm*/ ? 1 : 0)
+            + Vector3.forward * 0.5f * (rbf || rmf || rtf || mbf || mmf || mtf ? 1 : 0)
+            - (Vector3.right * deformation + Vector3.forward * deformation) * (!rmf && !rmm && !mmf ? 1 : 0)
+            + offset);
+        // RTF (73)
+        vertices.Add
+            (new Vector3(0.5f, 0.5f, 0.5f)
+            + offset);
+
+
+
+        return vertices;
+    }
+
 
     public static List<int> GenerateTriangles
     (

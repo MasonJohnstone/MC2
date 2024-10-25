@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    WorldController worldController;
     PhysicsController physicsController;
     float tempGravity = 0.5f;
     public GameObject head;
@@ -37,6 +38,17 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             isAttemptingJump = true;
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit;
+            Physics.Raycast(head.transform.position + new Vector3(0f, 0.225f, 0f), head.transform.forward, out hit);
+
+            if (hit.collider)
+            {
+                //WorldController.Break
+            }
         }
     }
 
@@ -100,5 +112,10 @@ public class PlayerController : MonoBehaviour
     {
         // Project player's right direction onto the ground plane
         return Vector3.ProjectOnPlane(player.right, groundNormal).normalized;
+    }
+
+    public void Initialize(WorldController _worldController)
+    {
+        worldController = _worldController;
     }
 }
