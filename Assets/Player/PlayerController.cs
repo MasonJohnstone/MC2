@@ -59,7 +59,7 @@ public class PlayerController : MonoBehaviour
         head.transform.localEulerAngles = new Vector3(xRotation, 0f, 0f);
 
         // Apply gravity force
-        ApplyForce(Vector3.down * tempGravity, false);
+        ApplyForce(Vector3.down * tempGravity, false, true);
 
         // Check if the player is trying to jump
         if (isAttemptingJump)
@@ -67,8 +67,14 @@ public class PlayerController : MonoBehaviour
             isAttemptingJump = false;
             if (physicsController.InContact)  // Only jump if grounded
             {
-                ApplyForce(Vector3.up * jumpForce, false);
+                ApplyForce(Vector3.up * jumpForce, false, false);
             }
+        }
+
+        RaycastHit ground;
+        if (Physics.CapsuleCast(transform.position + (Vector3.down * (1.8f / 2f - 0.6f / 2f)), transform.position + (Vector3.up * (1.8f / 2f - 0.6f / 2f)), 0.6f / 2f, Vector3.down, out ground, 0.11f))
+        {
+            groundNormal = ground.normal;
         }
 
         // Use the movement keys and GetMoveDirection to move the player
@@ -91,13 +97,13 @@ public class PlayerController : MonoBehaviour
         }
 
         // Apply the force for movement
-        ApplyForce(moveVector.normalized * moveForce, true);
+        ApplyForce(moveVector.normalized * moveForce, true, false);
     }
 
     // Function to apply forces
-    void ApplyForce(Vector3 force, bool useTraction)
+    void ApplyForce(Vector3 force, bool useTraction, bool useFriction)
     {
-        physicsController.ApplyForce(force, useTraction);
+        physicsController.ApplyForce(force, useTraction, useFriction);
     }
 
     // Function to get the movement direction based on ground normal and player's forward direction

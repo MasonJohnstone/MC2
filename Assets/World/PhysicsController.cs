@@ -44,14 +44,14 @@ public class PhysicsController : MonoBehaviour
 
             if (hasMomentum)
             {
-                ApplyForce(velocity, false);
+                ApplyForce(velocity, false, false);
             }
         }
 
         RemoveContact();
     }
 
-    public void ApplyForce(Vector3 force, bool useTraction)
+    public void ApplyForce(Vector3 force, bool useTraction, bool useFriction)
     {
         if (useTraction)
         {
@@ -92,7 +92,8 @@ public class PhysicsController : MonoBehaviour
                 force = force.normalized * (force.magnitude - (hit.distance - collisionOffset));
                 float angle = Mathf.Clamp(Vector3.Angle(hit.normal, friction), 0f, 90f);
                 force = Vector3.ProjectOnPlane(force, hit.normal);
-                force = force.normalized * Mathf.Clamp(force.magnitude - (friction.magnitude * ((90f - angle) / 90f)), 0f, Mathf.Infinity);
+                if (useFriction)
+                    force = force.normalized * Mathf.Clamp(force.magnitude - (friction.magnitude * ((90f - angle) / 90f)), 0f, Mathf.Infinity);
             }
         }
     }
