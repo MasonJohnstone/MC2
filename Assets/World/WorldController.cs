@@ -12,12 +12,13 @@ public class WorldController : MonoBehaviour
     private Vector3Int playerChunkPosition;
     
     static int chunkSize = 7;
-    public int loadRadius = 35;
-    int renderDistance = 10;
+    public int loadRadius = 10;
+    int renderDistance = 1;
     public GameObject chunkPrefab;
     private Dictionary<Vector3Int, GameObject> chunkObjectCache = new Dictionary<Vector3Int, GameObject>();
     private Dictionary<Vector3Int, Chunk> chunkDataCache = new Dictionary<Vector3Int, Chunk>();
     private string savePath;
+    ChunkRenderer chunkRenderer;
 
     void Start()
     {
@@ -25,6 +26,7 @@ public class WorldController : MonoBehaviour
         
         player = Instantiate(playerPrefab, new Vector3(0f, 100f, 0f), transform.rotation);
         savePath = Application.persistentDataPath + "/WorldData";
+        chunkRenderer = new ChunkRenderer();
 
         if (!Directory.Exists(savePath))
         {
@@ -131,6 +133,8 @@ public class WorldController : MonoBehaviour
                         GameObject chunkObject = Instantiate(chunkPrefab);
                         chunkObject.transform.position = chunkPosition * chunkSize;
                         chunkObject.name = $"Chunk_{chunkPosition}";
+                        
+                        chunkRenderer.SetMeshData(this, chunkDataCache[chunkPosition], chunkPosition, chunkObject, chunkSize);
                         chunkObjectCache[chunkPosition] = chunkObject;
                     }
                 }
@@ -166,9 +170,15 @@ public class WorldController : MonoBehaviour
         }
     }
 
-    // save chunk to file
     private void SaveChunk(Chunk chunk, string filePath)
     {
+        // Ensure the directory for the file path exists
+        string directory = Path.GetDirectoryName(filePath);
+        if (!Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
         using (FileStream fs = new FileStream(filePath, FileMode.Create))
         {
             BinaryWriter writer = new BinaryWriter(fs);
@@ -214,7 +224,7 @@ public class WorldController : MonoBehaviour
         if (!File.Exists(filePath))
         {
             Debug.LogWarning("Chunk file not found: " + filePath);
-            chunk.Generate(seed);
+            chunk.Generate(seed, chunkSize);
             return chunk;
         }
         else

@@ -20,6 +20,8 @@ public class PlayerController : MonoBehaviour
 
     Vector3 groundNormal = Vector3.up;  // Assuming flat ground to start with
 
+    bool applyGravity = false;
+
     void Start()
     {
         physicsController = gameObject.GetComponent<PhysicsController>();
@@ -50,6 +52,11 @@ public class PlayerController : MonoBehaviour
                 //WorldController.Break
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            applyGravity = !applyGravity;
+        }
     }
 
     void FixedUpdate()
@@ -59,7 +66,8 @@ public class PlayerController : MonoBehaviour
         head.transform.localEulerAngles = new Vector3(xRotation, 0f, 0f);
 
         // Apply gravity force
-        ApplyForce(Vector3.down * tempGravity, false, true);
+        if (applyGravity)
+            ApplyForce(Vector3.down * tempGravity, false, true);
 
         // Check if the player is trying to jump
         if (isAttemptingJump)

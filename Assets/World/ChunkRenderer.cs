@@ -28,9 +28,9 @@ public class ChunkRenderer
                         // loop through offset for each adjacent voxel
                         for (int ox = -1; ox <= 1; ox++)
                         {
-                            for (int oy = -1; ox <= 1; oy++)
+                            for (int oy = -1; oy <= 1; oy++)
                             {
-                                for (int oz = -1; ox <= 1; oz++)
+                                for (int oz = -1; oz <= 1; oz++)
                                 {
                                     // default set all surrounding voxels to transparent just so it renders everyhting instead of nothing until i add conditional faces
                                     //adjacentVoxelIsOpaque.SetData(ox, oy, oz, false);
@@ -86,19 +86,6 @@ public class ChunkRenderer
                             }
                         }
 
-                        
-                        // Check all surrounding voxels in 3x3x3 block
-                        for (int ox = -1; ox <= 1; ox++)
-                        {
-                            for (int oy = -1; oy <= 1; oy++)
-                            {
-                                for (int oz = -1; oz <= 1; oz++)
-                                {
-
-                                }
-                            }
-                        }
-
                         var voxelVertices = VoxelMeshData.GenerateVertices(adjacentVoxelIsOccupied, new Vector3(cvx, cvy, cvz));
                         var voxelTriangles = VoxelMeshData.GenerateTriangles(adjacentVoxelIsOpaque);
                         int vertexCount = chunkVertices.Count;
@@ -150,13 +137,6 @@ public class ChunkRenderer
     }
 }
 
-
-
-
-
-
-
-
 public class AdjacentVoxels
 {
     private bool[,,] data;
@@ -171,6 +151,7 @@ public class AdjacentVoxels
     // Set data for a specific position
     public void SetData(int dx, int dy, int dz, bool value)
     {
+        //Debug.Log(dx + ", " + dy + ", " + dz);
         data[dx + offset, dy + offset, dz + offset] = value;
     }
 
