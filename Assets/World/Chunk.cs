@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Chunk
 {
-    private Voxel[,,] voxelMap;
+    public Voxel[,,] voxelMap;
 
     public void Init(int size)
     {

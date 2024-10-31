@@ -6,41 +6,41 @@ public static class VoxelMeshData
 {
     public static List<Vector3> GenerateVertices
     (
-        bool[,,] adjacentVoxels,
+        AdjacentVoxels adjacentVoxels,
         Vector3 offset
     )
     {
         List<Vector3> vertices = new List<Vector3>();
 
-        bool lbh = adjacentVoxels[0, 0, 0];
-        bool lbm = adjacentVoxels[0, 0, 1];
-        bool lbf = adjacentVoxels[0, 0, 2];
-        bool lmh = adjacentVoxels[0, 1, 0];
-        bool lmm = adjacentVoxels[0, 1, 1];
-        bool lmf = adjacentVoxels[0, 1, 2];
-        bool lth = adjacentVoxels[0, 2, 0];
-        bool ltm = adjacentVoxels[0, 2, 1];
-        bool ltf = adjacentVoxels[0, 2, 2];
+        bool lbh = adjacentVoxels.GetData(-1, -1, -1);
+        bool lbm = adjacentVoxels.GetData(-1, -1, 0);
+        bool lbf = adjacentVoxels.GetData(-1, -1, 1);
+        bool lmh = adjacentVoxels.GetData(-1, 0, -1);
+        bool lmm = adjacentVoxels.GetData(-1, 0, 0);
+        bool lmf = adjacentVoxels.GetData(-1, 0, 1);
+        bool lth = adjacentVoxels.GetData(-1, 1, -1);
+        bool ltm = adjacentVoxels.GetData(-1, 1, 0);
+        bool ltf = adjacentVoxels.GetData(-1, 1, 1);
 
-        bool mbh = adjacentVoxels[1, 0, 0];
-        bool mbm = adjacentVoxels[1, 0, 1];
-        bool mbf = adjacentVoxels[1, 0, 2];
-        bool mmh = adjacentVoxels[1, 1, 0];
-        // bool mmm = adjacentVoxels[1, 1, 1];
-        bool mmf = adjacentVoxels[1, 1, 2];
-        bool mth = adjacentVoxels[1, 2, 0];
-        bool mtm = adjacentVoxels[1, 2, 1];
-        bool mtf = adjacentVoxels[1, 2, 2];
+        bool mbh = adjacentVoxels.GetData(0, -1, -1);
+        bool mbm = adjacentVoxels.GetData(0, -1, 0);
+        bool mbf = adjacentVoxels.GetData(0, -1, 1);
+        bool mmh = adjacentVoxels.GetData(0, 0, -1);
+        // bool mmm = adjacentVoxels.GetData(0, 0, 0); // This would be the center voxel, if needed
+        bool mmf = adjacentVoxels.GetData(0, 0, 1);
+        bool mth = adjacentVoxels.GetData(0, 1, -1);
+        bool mtm = adjacentVoxels.GetData(0, 1, 0);
+        bool mtf = adjacentVoxels.GetData(0, 1, 1);
 
-        bool rbh = adjacentVoxels[2, 0, 0];
-        bool rbm = adjacentVoxels[2, 0, 1];
-        bool rbf = adjacentVoxels[2, 0, 2];
-        bool rmh = adjacentVoxels[2, 1, 0];
-        bool rmm = adjacentVoxels[2, 1, 1];
-        bool rmf = adjacentVoxels[2, 1, 2];
-        bool rth = adjacentVoxels[2, 2, 0];
-        bool rtm = adjacentVoxels[2, 2, 1];
-        bool rtf = adjacentVoxels[2, 2, 2];
+        bool rbh = adjacentVoxels.GetData(1, -1, -1);
+        bool rbm = adjacentVoxels.GetData(1, -1, 0);
+        bool rbf = adjacentVoxels.GetData(1, -1, 1);
+        bool rmh = adjacentVoxels.GetData(1, 0, -1);
+        bool rmm = adjacentVoxels.GetData(1, 0, 0);
+        bool rmf = adjacentVoxels.GetData(1, 0, 1);
+        bool rth = adjacentVoxels.GetData(1, 1, -1);
+        bool rtm = adjacentVoxels.GetData(1, 1, 0);
+        bool rtf = adjacentVoxels.GetData(1, 1, 1);
 
         // INNER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // LBH (0)
@@ -808,38 +808,38 @@ public static class VoxelMeshData
 
     public static List<int> GenerateTriangles
     (
-        bool[,,] adjacentVoxels
+        AdjacentVoxels adjacentVoxels
     )
     {
-        bool lbr = adjacentVoxels[0, 0, 0];
-        bool lbm = adjacentVoxels[0, 0, 1];
-        bool lbf = adjacentVoxels[0, 0, 2];
-        bool lmr = adjacentVoxels[0, 1, 0];
-        bool lmm = adjacentVoxels[0, 1, 1];
-        bool lmf = adjacentVoxels[0, 1, 2];
-        bool ltr = adjacentVoxels[0, 2, 0];
-        bool ltm = adjacentVoxels[0, 2, 1];
-        bool ltf = adjacentVoxels[0, 2, 2];
+        bool lbh = adjacentVoxels.GetData(-1, -1, -1);
+        bool lbm = adjacentVoxels.GetData(-1, -1, 0);
+        bool lbf = adjacentVoxels.GetData(-1, -1, 1);
+        bool lmh = adjacentVoxels.GetData(-1, 0, -1);
+        bool lmm = adjacentVoxels.GetData(-1, 0, 0);
+        bool lmf = adjacentVoxels.GetData(-1, 0, 1);
+        bool lth = adjacentVoxels.GetData(-1, 1, -1);
+        bool ltm = adjacentVoxels.GetData(-1, 1, 0);
+        bool ltf = adjacentVoxels.GetData(-1, 1, 1);
 
-        bool mbr = adjacentVoxels[1, 0, 0];
-        bool mbm = adjacentVoxels[1, 0, 1];
-        bool mbf = adjacentVoxels[1, 0, 2];
-        bool mmr = adjacentVoxels[1, 1, 0];
-        // bool mmm = adjacentVoxels[1, 1, 1];
-        bool mmf = adjacentVoxels[1, 1, 2];
-        bool mtr = adjacentVoxels[1, 2, 0];
-        bool mtm = adjacentVoxels[1, 2, 1];
-        bool mtf = adjacentVoxels[1, 2, 2];
+        bool mbh = adjacentVoxels.GetData(0, -1, -1);
+        bool mbm = adjacentVoxels.GetData(0, -1, 0);
+        bool mbf = adjacentVoxels.GetData(0, -1, 1);
+        bool mmh = adjacentVoxels.GetData(0, 0, -1);
+        // bool mmm = adjacentVoxels.GetData(0, 0, 0); // This would be the center voxel, if needed
+        bool mmf = adjacentVoxels.GetData(0, 0, 1);
+        bool mth = adjacentVoxels.GetData(0, 1, -1);
+        bool mtm = adjacentVoxels.GetData(0, 1, 0);
+        bool mtf = adjacentVoxels.GetData(0, 1, 1);
 
-        bool rbr = adjacentVoxels[2, 0, 0];
-        bool rbm = adjacentVoxels[2, 0, 1];
-        bool rbf = adjacentVoxels[2, 0, 2];
-        bool rmr = adjacentVoxels[2, 1, 0];
-        bool rmm = adjacentVoxels[2, 1, 1];
-        bool rmf = adjacentVoxels[2, 1, 2];
-        bool rtr = adjacentVoxels[2, 2, 0];
-        bool rtm = adjacentVoxels[2, 2, 1];
-        bool rtf = adjacentVoxels[2, 2, 2];
+        bool rbh = adjacentVoxels.GetData(1, -1, -1);
+        bool rbm = adjacentVoxels.GetData(1, -1, 0);
+        bool rbf = adjacentVoxels.GetData(1, -1, 1);
+        bool rmh = adjacentVoxels.GetData(1, 0, -1);
+        bool rmm = adjacentVoxels.GetData(1, 0, 0);
+        bool rmf = adjacentVoxels.GetData(1, 0, 1);
+        bool rth = adjacentVoxels.GetData(1, 1, -1);
+        bool rtm = adjacentVoxels.GetData(1, 1, 0);
+        bool rtf = adjacentVoxels.GetData(1, 1, 1);
 
         List<int> tris = new List<int>();
 
