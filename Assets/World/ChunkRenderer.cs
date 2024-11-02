@@ -19,25 +19,61 @@ public class ChunkRenderer
         List<int> chunkTriangles = new List<int>();
         int offset = 0;
 
-        // Loop through all voxels in the voxel map
-        for (int vmx = 0; vmx < chunkSize - 1; vmx++)
+        // Helper function to get density, considering chunk boundaries
+        float GetDensity(int x, int y, int z)
         {
-            for (int vmy = 0; vmy < chunkSize - 1; vmy++)
+            if (x >= 0 && x < chunkSize && y >= 0 && y < chunkSize && z >= 0 && z < chunkSize)
             {
-                for (int vmz = 0; vmz < chunkSize - 1; vmz++)
+                // Within bounds of this chunk
+                return chunkData.voxelMap[x, y, z].density;
+            }
+            else
+            {
+                // Calculate offset for neighboring chunk
+                Vector3Int neighborOffset = new Vector3Int(
+                    x < 0 ? -1 : x >= chunkSize ? 1 : 0,
+                    y < 0 ? -1 : y >= chunkSize ? 1 : 0,
+                    z < 0 ? -1 : z >= chunkSize ? 1 : 0
+                );
+
+                Vector3Int neighborPosition = chunkPosition + neighborOffset;
+
+                // Try to get the neighboring chunk
+                if (worldController.chunkDataCache.TryGetValue(neighborPosition, out Chunk neighborChunk))
+                {
+                    // Calculate local position within the neighboring chunk
+                    int localX = (x + chunkSize) % chunkSize;
+                    int localY = (y + chunkSize) % chunkSize;
+                    int localZ = (z + chunkSize) % chunkSize;
+
+                    return neighborChunk.voxelMap[localX, localY, localZ].density;
+                }
+                else
+                {
+                    return 0f; // Default density for out-of-bounds if no neighbor
+                }
+            }
+        }
+
+        // Loop through all voxels in the voxel map
+        for (int vmx = 0; vmx < chunkSize; vmx++)
+        {
+            for (int vmy = 0; vmy < chunkSize; vmy++)
+            {
+                for (int vmz = 0; vmz < chunkSize; vmz++)
                 {
                     // Prepare a float array for corner densities
                     float[] cubeDensities = new float[8];
 
                     // Assign density values for each corner of the cube
-                    cubeDensities[0] = chunkData.voxelMap[vmx, vmy, vmz].density;
-                    cubeDensities[1] = chunkData.voxelMap[vmx + 1, vmy, vmz].density;
-                    cubeDensities[2] = chunkData.voxelMap[vmx + 1, vmy + 1, vmz].density;
-                    cubeDensities[3] = chunkData.voxelMap[vmx, vmy + 1, vmz].density;
-                    cubeDensities[4] = chunkData.voxelMap[vmx, vmy, vmz + 1].density;
-                    cubeDensities[5] = chunkData.voxelMap[vmx + 1, vmy, vmz + 1].density;
-                    cubeDensities[6] = chunkData.voxelMap[vmx + 1, vmy + 1, vmz + 1].density;
-                    cubeDensities[7] = chunkData.voxelMap[vmx, vmy + 1, vmz + 1].density;
+                    cubeDensities[0] = GetDensity(vmx, vmy, vmz);
+                    cubeDensities[1] = GetDensity(vmx + 1, vmy, vmz);
+                    cubeDensities[2] = GetDensity(vmx + 1, vmy + 1, vmz);
+                    cubeDensities[3] = GetDensity(vmx, vmy + 1, vmz);
+                    cubeDensities[4] = GetDensity(vmx, vmy, vmz + 1);
+                    cubeDensities[5] = GetDensity(vmx + 1, vmy, vmz + 1);
+                    cubeDensities[6] = GetDensity(vmx + 1, vmy + 1, vmz + 1);
+                    cubeDensities[7] = GetDensity(vmx, vmy + 1, vmz + 1);
 
                     // Prepare lists to hold the generated vertices and triangles for this cube
                     List<Vector3> cubeVertices = new List<Vector3>();
@@ -57,7 +93,7 @@ public class ChunkRenderer
             }
         }
 
-        // Mesh setup
+        // Mesh setup (as you had it)
         MeshFilter meshFilter = chunkObject.GetComponent<MeshFilter>() ?? chunkObject.AddComponent<MeshFilter>();
         MeshRenderer meshRenderer = chunkObject.GetComponent<MeshRenderer>() ?? chunkObject.AddComponent<MeshRenderer>();
 
@@ -79,8 +115,6 @@ public class ChunkRenderer
 
         meshCollider.sharedMesh = mesh;
     }
-
-
 }
 
 public class AdjacentVoxels

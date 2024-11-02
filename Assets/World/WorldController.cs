@@ -22,7 +22,7 @@ public class WorldController : MonoBehaviour
 
     public GameObject chunkPrefab;
     private Dictionary<Vector3Int, GameObject> chunkObjectCache = new Dictionary<Vector3Int, GameObject>();
-    private Dictionary<Vector3Int, Chunk> chunkDataCache = new Dictionary<Vector3Int, Chunk>();
+    public Dictionary<Vector3Int, Chunk> chunkDataCache = new Dictionary<Vector3Int, Chunk>();
     private string savePath;
     ChunkRenderer chunkRenderer;
 
@@ -242,7 +242,7 @@ public class WorldController : MonoBehaviour
 
         if (!File.Exists(filePath))
         {
-            chunk.Generate(chunkSize, 10, 0.1f, chunkPosition);
+            chunk.Generate(chunkSize, 20, 0.05f, 0.08f, 0.6f, chunkPosition);
             return chunk;
         }
 
