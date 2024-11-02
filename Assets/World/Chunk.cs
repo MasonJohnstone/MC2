@@ -39,33 +39,37 @@ public class Chunk
                     // Calculate global Y position
                     int globalY = y + chunkPosition.y * chunkSize;
 
-                    // Determine voxel type based on terrain height
-                    int type = (globalY <= terrainHeightAtXZ) ? 1 : 0;
-                    float density = (type != 0) ? 1.0f : 0.0f;
+                    // Determine initial density based on terrain height
+                    float baseDensity = (globalY <= terrainHeightAtXZ) ? 1.0f : 0.0f;
 
-                    // Apply layered 3D Perlin noise for varied tunnels
-                    if (type != 0) // Only apply tunnels below the terrain surface
+                    // Apply 3D Perlin noise for varied, winding tunnels
+                    if (baseDensity != 0.0f) // Only apply tunnels below the terrain surface
                     {
-                        // Adjust the 3D noise to account for chunkPosition.y for vertical variation
-                        float tunnelNoise1 = Mathf.PerlinNoise(
-                            globalX * tunnelFrequency,
-                            (globalY + chunkPosition.y * chunkSize) * tunnelFrequency + globalZ * tunnelFrequency
-                        );
+                        // 3D noise-based tunnel generation
+                        float tunnelNoiseX = Mathf.PerlinNoise(globalY * tunnelFrequency, globalZ * tunnelFrequency);
+                        float tunnelNoiseY = Mathf.PerlinNoise(globalX * tunnelFrequency, globalZ * tunnelFrequency);
+                        float tunnelNoiseZ = Mathf.PerlinNoise(globalX * tunnelFrequency, globalY * tunnelFrequency);
 
-                        float tunnelNoise2 = Mathf.PerlinNoise(
-                            globalX * tunnelFrequency * 0.5f,
-                            (globalY + chunkPosition.y * chunkSize) * tunnelFrequency * 0.5f + globalZ * tunnelFrequency * 0.5f
-                        );
-
-                        // Combine noises to add variation
-                        float tunnelNoise = tunnelNoise1 * 0.6f + tunnelNoise2 * 0.4f;
+                        // Average out the 3D noises to create winding, organic shapes
+                        float tunnelNoise = (tunnelNoiseX + tunnelNoiseY + tunnelNoiseZ) / 3.0f;
 
                         if (tunnelNoise > tunnelThreshold)
                         {
-                            type = 0; // Make it an air voxel for a tunnel
-                            density = 0.0f;
+                            baseDensity = 0.0f; // Set as air if tunnel threshold is exceeded
                         }
                     }
+
+                    // Round density to the nearest discrete value: 0, 0.33, 0.66, or 1
+                    float density = 0.0f;
+                    if (baseDensity > 0.0f)
+                    {
+                        if (baseDensity <= 0.33f) density = 0.33f;
+                        else if (baseDensity <= 0.66f) density = 0.66f;
+                        else density = 1.0f;
+                    }
+
+                    // Determine voxel type based on density
+                    int type = (density >= 0.33f) ? 1 : 0;
 
                     // Create voxel with the calculated type and density
                     Voxel voxel = new Voxel { type = type, isOpaque = (type == 1), density = density };
@@ -74,8 +78,6 @@ public class Chunk
             }
         }
     }
-
-
 }
 
 public struct Voxel

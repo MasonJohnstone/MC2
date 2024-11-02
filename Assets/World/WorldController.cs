@@ -16,9 +16,9 @@ public class WorldController : MonoBehaviour
     [HideInInspector]
     public static int chunkSize = 32;
     [HideInInspector]
-    public static float voxelSize = 1f;
-    int loadRadius = 5;
-    int renderDistance = 4;
+    public static float voxelSize = 0.2f;
+    int loadRadius = 10;
+    int renderDistance = 9;
 
     public GameObject chunkPrefab;
     private Dictionary<Vector3Int, GameObject> chunkObjectCache = new Dictionary<Vector3Int, GameObject>();
@@ -242,7 +242,7 @@ public class WorldController : MonoBehaviour
 
         if (!File.Exists(filePath))
         {
-            chunk.Generate(chunkSize, 20, 0.05f, 0.08f, 0.6f, chunkPosition);
+            chunk.Generate(chunkSize, 15, 0.01f, 0.08f, 0.5f, chunkPosition);
             return chunk;
         }
 

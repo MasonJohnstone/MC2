@@ -9,7 +9,7 @@ public class ChunkRenderer
     public ChunkRenderer()
     {
         // Initialize MarchingCubes once in the constructor with a surface threshold (e.g., 0.5f)
-        marchingCubes = new MarchingCubes(0.5f);
+        marchingCubes = new MarchingCubes(0.99f);
     }
 
 
