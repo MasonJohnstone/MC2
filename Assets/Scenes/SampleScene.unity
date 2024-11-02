@@ -323,7 +323,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 6522681890943528947, guid: f1e91c11453f25b47ab36df0cd0807f5, type: 3}
-  loadRadius: 35
   chunkPrefab: {fileID: 7578769168628461496, guid: 6394c8ed0bd314042ad120ec83f36709, type: 3}
 --- !u!4 &2010733821
 Transform:

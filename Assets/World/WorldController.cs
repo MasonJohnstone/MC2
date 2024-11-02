@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
+using System;
+
 public class WorldController : MonoBehaviour
 {
     int seed;
@@ -12,8 +14,8 @@ public class WorldController : MonoBehaviour
     private Vector3Int playerChunkPosition;
     
     static int chunkSize = 7;
-    public int loadRadius = 10;
-    int renderDistance = 1;
+    int loadRadius = 4;
+    int renderDistance = 2;
     public GameObject chunkPrefab;
     private Dictionary<Vector3Int, GameObject> chunkObjectCache = new Dictionary<Vector3Int, GameObject>();
     private Dictionary<Vector3Int, Chunk> chunkDataCache = new Dictionary<Vector3Int, Chunk>();
@@ -24,8 +26,8 @@ public class WorldController : MonoBehaviour
     {
         Debug.Log("Persistent Data Path: " + Application.persistentDataPath);
         
-        player = Instantiate(playerPrefab, new Vector3(0f, 100f, 0f), transform.rotation);
-        savePath = Application.persistentDataPath + "/WorldData";
+        player = Instantiate(playerPrefab, new Vector3(0f, 10f, 0f), transform.rotation);
+        savePath = Path.Combine(Application.persistentDataPath, "WorldData");
         chunkRenderer = new ChunkRenderer();
 
         if (!Directory.Exists(savePath))
@@ -33,7 +35,15 @@ public class WorldController : MonoBehaviour
             Directory.CreateDirectory(savePath);
         }
 
-        //UpdateChunkDataCache();
+        //Chunk chunk = new Chunk();
+        //chunk.Init(chunkSize);
+        //SaveChunk(chunk, savePath);
+
+        // update stored player chunk pos
+        playerChunkPosition = GetChunkPosition(player.transform.position);
+        // update chunks to be loaded as runtime variables
+        UpdateChunkDataCache();
+        UpdateChunkObjectCache();
     }
 
     void Update()
@@ -61,6 +71,7 @@ public class WorldController : MonoBehaviour
 
     void UpdateChunkDataCache()
     {
+        Debug.Log("Updateing chunk cache!");
         HashSet<Vector3Int> requiredChunks = new HashSet<Vector3Int>();
 
         // Define the positions for chunks to be loaded within the load radius
@@ -77,11 +88,8 @@ public class WorldController : MonoBehaviour
                     // Check if the chunk is already cached
                     if (!chunkDataCache.ContainsKey(chunkPosition))
                     {
-                        // Create the file path using chunkPosition
                         string filePath = Path.Combine(savePath, $"chunk_{chunkPosition.x}_{chunkPosition.y}_{chunkPosition.z}.dat");
-
-                        // Load the chunk from file if it exists, or create a new chunk if it doesn't
-                        chunkDataCache[chunkPosition] = LoadChunk(filePath);
+                        chunkDataCache[chunkPosition] = LoadChunk(filePath, chunkPosition);
                     }
                 }
             }
@@ -96,9 +104,8 @@ public class WorldController : MonoBehaviour
             // if chunk isnt required in cache
             if (!requiredChunks.Contains(chunkPosition))
             {
-                // save chunk data
-                SaveChunk(chunkDataCache[chunkPosition], savePath);
-                // add to unload list
+                string filePath = Path.Combine(savePath, $"chunk_{chunkPosition.x}_{chunkPosition.y}_{chunkPosition.z}.dat");
+                SaveChunk(chunkDataCache[chunkPosition], filePath);
                 chunksToUnload.Add(chunkPosition);
             }
         }
@@ -172,32 +179,42 @@ public class WorldController : MonoBehaviour
 
     private void SaveChunk(Chunk chunk, string filePath)
     {
-        // Ensure the directory for the file path exists
-        string directory = Path.GetDirectoryName(filePath);
-        if (!Directory.Exists(directory))
+        try
         {
-            Directory.CreateDirectory(directory);
-        }
-
-        using (FileStream fs = new FileStream(filePath, FileMode.Create))
-        {
-            BinaryWriter writer = new BinaryWriter(fs);
-
-            // Loop through all voxels in the voxel map and save their data
-            for (int x = 0; x < chunkSize; x++)
+            string directory = Path.GetDirectoryName(filePath);
+            if (directory != null && !Directory.Exists(directory))
             {
-                for (int y = 0; y < chunkSize; y++)
+                Directory.CreateDirectory(directory);
+            }
+
+            using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+            using (BinaryWriter writer = new BinaryWriter(fs))
+            {
+                for (int x = 0; x < chunkSize; x++)
                 {
-                    for (int z = 0; z < chunkSize; z++)
+                    for (int y = 0; y < chunkSize; y++)
                     {
-                        Voxel voxel = chunk.GetVoxel(new Vector3Int(x, y, z));
-                        writer.Write(voxel.type);
-                        writer.Write(voxel.isOpaque);
+                        for (int z = 0; z < chunkSize; z++)
+                        {
+                            Voxel voxel = chunk.GetVoxel(new Vector3Int(x, y, z));
+                            writer.Write(voxel.type);
+                            writer.Write(voxel.isOpaque);
+                        }
                     }
                 }
+
             }
+
+            Debug.Log($"Chunk saved successfully at {filePath}");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Failed to save chunk at {filePath}. Error: {ex.Message}");
         }
     }
+
+
+
 
     // save all loaded chunks
     public void SaveWorld()
@@ -207,36 +224,27 @@ public class WorldController : MonoBehaviour
             Vector3Int chunkPosition = chunkEntry.Key;
             Chunk chunk = chunkEntry.Value;
 
-            // Generate a unique file path for each chunk based on its position
             string chunkFilePath = Path.Combine(savePath, $"chunk_{chunkPosition.x}_{chunkPosition.y}_{chunkPosition.z}.dat");
-
             SaveChunk(chunk, chunkFilePath);
         }
     }
 
+
     // create a chunk or load from file if it already exists
-    private Chunk LoadChunk(string filePath)
+    private Chunk LoadChunk(string filePath, Vector3Int chunkPosition)
     {
         Chunk chunk = new Chunk();
         chunk.Init(chunkSize);
 
-        // Check if the file exists before attempting to load
         if (!File.Exists(filePath))
         {
-            Debug.LogWarning("Chunk file not found: " + filePath);
-            chunk.Generate(seed, chunkSize);
+            chunk.Generate(chunkSize, 10, 0.1f, chunkPosition);
             return chunk;
         }
-        else
-        {
-            Debug.LogWarning("Chunk file magically found NIGGER!!!!");
-        }
 
-        using (FileStream fs = new FileStream(filePath, FileMode.Open))
+        using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+        using (BinaryReader reader = new BinaryReader(fs))
         {
-            BinaryReader reader = new BinaryReader(fs);
-
-            // Loop through all voxel positions in the chunk and load their data
             for (int x = 0; x < chunkSize; x++)
             {
                 for (int y = 0; y < chunkSize; y++)
@@ -246,18 +254,17 @@ public class WorldController : MonoBehaviour
                         int type = reader.ReadInt32();
                         bool isOpaque = reader.ReadBoolean();
 
-                        // Create the voxel and set its properties
                         Voxel voxel = new Voxel { type = type, isOpaque = isOpaque };
-
-                        // Set the voxel in the chunk's voxel map
                         chunk.SetVoxel(new Vector3Int(x, y, z), voxel);
                     }
                 }
             }
         }
 
+        Debug.Log($"Chunk loaded successfully from {filePath}");
         return chunk;
     }
+
 
     public Chunk GetChunkFromCacheAtPosition(Vector3Int chunkPosition)
     {

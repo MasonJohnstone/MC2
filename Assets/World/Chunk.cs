@@ -21,26 +21,34 @@ public class Chunk
         voxelMap[position.x, position.y, position.z] = voxel;
     }
 
-    public void Generate(int seed, int chunkSize)
+    public void Generate(int chunkSize, float waveHeight, float waveFrequency, Vector3Int chunkPosition)
     {
-        System.Random random = new System.Random(seed);
-
         for (int x = 0; x < chunkSize; x++)
         {
-            for (int y = 0; y < chunkSize; y++)
+            for (int z = 0; z < chunkSize; z++)
             {
-                for (int z = 0; z < chunkSize; z++)
-                {
-                    // 1 in 10 chance to set voxel type to 1; otherwise, it's 0
-                    int type = (random.Next(10) == 0) ? 1 : 0;
+                // Calculate the global x, y, and z positions by adding the chunk position offset
+                int globalX = x + chunkPosition.x * chunkSize;
+                int globalZ = z + chunkPosition.z * chunkSize;
 
+                // Calculate the height of the sine wave at this global (x, z) position
+                float wave = Mathf.Sin(globalX * waveFrequency) * Mathf.Sin(globalZ * waveFrequency) * waveHeight;
+
+                for (int y = 0; y < chunkSize; y++)
+                {
+                    // Calculate the global y position with chunk position offset
+                    int globalY = y + chunkPosition.y * chunkSize;
+
+                    // Set voxel type based on whether it's below or above the wave height, adjusted by globalY
+                    int type = (globalY <= wave) ? 1 : 0;
+
+                    // Create the voxel, setting it as opaque if type is 1
                     Voxel voxel = new Voxel { type = type, isOpaque = (type == 1) };
                     SetVoxel(new Vector3Int(x, y, z), voxel);
                 }
             }
         }
     }
-
 }
 
 public struct Voxel
