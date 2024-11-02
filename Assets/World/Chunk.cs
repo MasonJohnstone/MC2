@@ -41,9 +41,10 @@ public class Chunk
 
                     // Set voxel type based on whether it's below or above the wave height, adjusted by globalY
                     int type = (globalY <= wave) ? 1 : 0;
+                    float density = (type != 0) ? 1.0f : 0.0f;
 
                     // Create the voxel, setting it as opaque if type is 1
-                    Voxel voxel = new Voxel { type = type, isOpaque = (type == 1) };
+                    Voxel voxel = new Voxel { type = type, isOpaque = (type == 1), density = density };
                     SetVoxel(new Vector3Int(x, y, z), voxel);
                 }
             }
@@ -55,4 +56,5 @@ public struct Voxel
 {
     public int type;
     public bool isOpaque;
+    public float density;
 }

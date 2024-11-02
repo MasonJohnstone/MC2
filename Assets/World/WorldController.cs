@@ -12,10 +12,14 @@ public class WorldController : MonoBehaviour
     public GameObject playerPrefab;
     private GameObject player;
     private Vector3Int playerChunkPosition;
-    
-    static int chunkSize = 7;
-    int loadRadius = 4;
-    int renderDistance = 2;
+
+    [HideInInspector]
+    public static int chunkSize = 32;
+    [HideInInspector]
+    public static float voxelSize = 1f;
+    int loadRadius = 5;
+    int renderDistance = 4;
+
     public GameObject chunkPrefab;
     private Dictionary<Vector3Int, GameObject> chunkObjectCache = new Dictionary<Vector3Int, GameObject>();
     private Dictionary<Vector3Int, Chunk> chunkDataCache = new Dictionary<Vector3Int, Chunk>();
