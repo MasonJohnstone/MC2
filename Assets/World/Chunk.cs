@@ -40,10 +40,10 @@ public class Chunk
                     int globalY = y + chunkPosition.y * chunkSize;
 
                     // Determine initial density based on terrain height
-                    float baseDensity = (globalY <= terrainHeightAtXZ) ? 1.0f : 0.0f;
+                    float density = (globalY <= terrainHeightAtXZ) ? 1.0f : 0.0f;
 
                     // Apply 3D Perlin noise for varied, winding tunnels
-                    if (baseDensity != 0.0f) // Only apply tunnels below the terrain surface
+                    if (density > 0.0f) // Only apply tunnels below the terrain surface
                     {
                         // 3D noise-based tunnel generation
                         float tunnelNoiseX = Mathf.PerlinNoise(globalY * tunnelFrequency, globalZ * tunnelFrequency);
@@ -55,21 +55,12 @@ public class Chunk
 
                         if (tunnelNoise > tunnelThreshold)
                         {
-                            baseDensity = 0.0f; // Set as air if tunnel threshold is exceeded
+                            density = 0.0f; // Set as air if tunnel threshold is exceeded
                         }
                     }
 
-                    // Round density to the nearest discrete value: 0, 0.33, 0.66, or 1
-                    float density = 0.0f;
-                    if (baseDensity > 0.0f)
-                    {
-                        if (baseDensity <= 0.33f) density = 0.33f;
-                        else if (baseDensity <= 0.66f) density = 0.66f;
-                        else density = 1.0f;
-                    }
-
-                    // Determine voxel type based on density
-                    int type = (density >= 0.33f) ? 1 : 0;
+                    // Determine voxel type based on density threshold
+                    int type = (density > 0.0f) ? 1 : 0;
 
                     // Create voxel with the calculated type and density
                     Voxel voxel = new Voxel { type = type, isOpaque = (type == 1), density = density };
@@ -78,6 +69,7 @@ public class Chunk
             }
         }
     }
+
 }
 
 public struct Voxel

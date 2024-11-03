@@ -9,15 +9,17 @@ public class ChunkRenderer
     public ChunkRenderer()
     {
         // Initialize MarchingCubes once in the constructor with a surface threshold (e.g., 0.5f)
-        marchingCubes = new MarchingCubes(0.99f);
+        marchingCubes = new MarchingCubes(0.5f);
     }
 
-
-    public void SetMeshData(WorldController worldController, Chunk chunkData, Vector3Int chunkPosition, GameObject chunkObject, int chunkSize)
+    public void SetMeshData(WorldController worldController, Chunk chunkData, Vector3Int chunkPosition, GameObject chunkObject)
     {
         List<Vector3> chunkVertices = new List<Vector3>();
         List<int> chunkTriangles = new List<int>();
         int offset = 0;
+
+        int chunkSize = worldController.chunkSize;
+        float voxelSize = worldController.voxelSize;
 
         // Helper function to get density, considering chunk boundaries
         float GetDensity(int x, int y, int z)
@@ -81,6 +83,12 @@ public class ChunkRenderer
 
                     // Call PerformMarch for this cube
                     marchingCubes.PerformMarch(vmx, vmy, vmz, cubeDensities, cubeVertices, cubeTriangles);
+
+                    // Scale each vertex by voxelSize and add it to the chunk’s lists
+                    for (int i = 0; i < cubeVertices.Count; i++)
+                    {
+                        cubeVertices[i] *= voxelSize;
+                    }
 
                     // Add cube vertices and triangles to the chunk’s lists, adjusting indices
                     chunkVertices.AddRange(cubeVertices);

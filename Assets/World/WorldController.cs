@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using System.Threading.Tasks;
 
 using System;
 
@@ -14,11 +15,11 @@ public class WorldController : MonoBehaviour
     private Vector3Int playerChunkPosition;
 
     [HideInInspector]
-    public static int chunkSize = 32;
+    public int chunkSize = 32;
     [HideInInspector]
-    public static float voxelSize = 0.2f;
-    int loadRadius = 10;
-    int renderDistance = 9;
+    public float voxelSize = 0.1f;
+    int loadRadius = 3;
+    int renderDistance = 2;
 
     public GameObject chunkPrefab;
     private Dictionary<Vector3Int, GameObject> chunkObjectCache = new Dictionary<Vector3Int, GameObject>();
@@ -59,24 +60,25 @@ public class WorldController : MonoBehaviour
             playerChunkPosition = GetChunkPosition(player.transform.position);
             // update chunks to be loaded as runtime variables
             UpdateChunkDataCache();
-
             UpdateChunkObjectCache();
         }
     }
 
     public Vector3Int GetChunkPosition(Vector3 position)
     {
-        int x = Mathf.FloorToInt(position.x / chunkSize);
-        int y = Mathf.FloorToInt(position.y / chunkSize);
-        int z = Mathf.FloorToInt(position.z / chunkSize);
+        int x = Mathf.FloorToInt(position.x / (chunkSize * voxelSize));
+        int y = Mathf.FloorToInt(position.y / (chunkSize * voxelSize));
+        int z = Mathf.FloorToInt(position.z / (chunkSize * voxelSize));
 
         return new Vector3Int(x, y, z);
     }
 
     void UpdateChunkDataCache()
     {
-        Debug.Log("Updateing chunk cache!");
         HashSet<Vector3Int> requiredChunks = new HashSet<Vector3Int>();
+
+        // Calculate actual chunk size in world space
+        float worldChunkSize = chunkSize * voxelSize;
 
         // Define the positions for chunks to be loaded within the load radius
         for (int x = -loadRadius; x <= loadRadius; x++)
@@ -87,6 +89,14 @@ public class WorldController : MonoBehaviour
                 {
                     // Define absolute chunk position based on player chunk position
                     Vector3Int chunkPosition = playerChunkPosition + new Vector3Int(x, y, z);
+
+                    // Convert chunkPosition to world space using voxel size
+                    Vector3Int worldChunkPosition = new Vector3Int(
+                        Mathf.FloorToInt(chunkPosition.x * worldChunkSize),
+                        Mathf.FloorToInt(chunkPosition.y * worldChunkSize),
+                        Mathf.FloorToInt(chunkPosition.z * worldChunkSize)
+                    );
+
                     requiredChunks.Add(chunkPosition); // Add chunk to required chunks
 
                     // Check if the chunk is already cached
@@ -99,35 +109,37 @@ public class WorldController : MonoBehaviour
             }
         }
 
-        // create a list to store the positions of chunks to be removed
+        // Create a list to store the positions of chunks to be removed
         List<Vector3Int> chunksToUnload = new List<Vector3Int>();
 
-        // loop through chunks in cache
+        // Loop through chunks in cache
         foreach (var chunkPosition in chunkDataCache.Keys)
         {
-            // if chunk isnt required in cache
+            // If chunk isn't required in cache
             if (!requiredChunks.Contains(chunkPosition))
             {
                 string filePath = Path.Combine(savePath, $"chunk_{chunkPosition.x}_{chunkPosition.y}_{chunkPosition.z}.dat");
-                SaveChunk(chunkDataCache[chunkPosition], filePath);
+                //SaveChunk(chunkDataCache[chunkPosition], filePath);
                 chunksToUnload.Add(chunkPosition);
             }
         }
 
-        // remove chunks from cache in seperate loop so you dont remove during iteration
+        // Remove chunks from cache in a separate loop to avoid modifying the collection during iteration
         foreach (var chunkPosition in chunksToUnload)
         {
-            // remove chunk from cache
+            // Remove chunk from cache
             chunkDataCache.Remove(chunkPosition);
         }
-
     }
 
     void UpdateChunkObjectCache()
     {
         HashSet<Vector3Int> requiredChunks = new HashSet<Vector3Int>();
 
-        // Define the positions for chunks to be loaded within the load radius
+        // Calculate the actual world space chunk size based on voxel size
+        float worldChunkSize = chunkSize * voxelSize;
+
+        // Define the positions for chunks to be loaded within the render distance
         for (int x = -renderDistance; x <= renderDistance; x++)
         {
             for (int y = -renderDistance; y <= renderDistance; y++)
@@ -141,32 +153,38 @@ public class WorldController : MonoBehaviour
                     // Check if the chunk is already cached
                     if (!chunkObjectCache.ContainsKey(chunkPosition))
                     {
+                        // Instantiate the chunk GameObject and set its world position based on chunk size and voxel size
                         GameObject chunkObject = Instantiate(chunkPrefab);
-                        chunkObject.transform.position = chunkPosition * chunkSize;
+                        chunkObject.transform.position = new Vector3(
+                            chunkPosition.x * worldChunkSize,
+                            chunkPosition.y * worldChunkSize,
+                            chunkPosition.z * worldChunkSize
+                        );
                         chunkObject.name = $"Chunk_{chunkPosition}";
-                        
-                        chunkRenderer.SetMeshData(this, chunkDataCache[chunkPosition], chunkPosition, chunkObject, chunkSize);
+
+                        // Set mesh data based on the calculated chunk position and chunk data
+                        chunkRenderer.SetMeshData(this, chunkDataCache[chunkPosition], chunkPosition, chunkObject);
                         chunkObjectCache[chunkPosition] = chunkObject;
                     }
                 }
             }
         }
 
-        // create a list to store the positions of chunks to be removed
+        // Create a list to store the positions of chunks to be removed
         List<Vector3Int> chunksToUnload = new List<Vector3Int>();
 
-        // loop through chunks in cache
+        // Loop through chunks in cache
         foreach (var chunkPosition in chunkObjectCache.Keys)
         {
-            // if chunk isnt required in cache
+            // If chunk isn't required in cache
             if (!requiredChunks.Contains(chunkPosition))
             {
-                // add to unload list
+                // Add to unload list
                 chunksToUnload.Add(chunkPosition);
             }
         }
 
-        // Remove chunks from cache in a separate loop so you don't remove during iteration
+        // Remove chunks from cache in a separate loop to avoid modifying the collection during iteration
         foreach (var chunkPosition in chunksToUnload)
         {
             // Retrieve the GameObject associated with the chunk position
@@ -183,6 +201,7 @@ public class WorldController : MonoBehaviour
 
     private void SaveChunk(Chunk chunk, string filePath)
     {
+        return;
         try
         {
             string directory = Path.GetDirectoryName(filePath);
@@ -217,9 +236,6 @@ public class WorldController : MonoBehaviour
         }
     }
 
-
-
-
     // save all loaded chunks
     public void SaveWorld()
     {
@@ -229,7 +245,7 @@ public class WorldController : MonoBehaviour
             Chunk chunk = chunkEntry.Value;
 
             string chunkFilePath = Path.Combine(savePath, $"chunk_{chunkPosition.x}_{chunkPosition.y}_{chunkPosition.z}.dat");
-            SaveChunk(chunk, chunkFilePath);
+            //SaveChunk(chunk, chunkFilePath);
         }
     }
 
