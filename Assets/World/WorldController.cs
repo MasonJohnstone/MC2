@@ -15,11 +15,11 @@ public class WorldController : MonoBehaviour
     private Vector3Int playerChunkPosition;
 
     [HideInInspector]
-    public int chunkSize = 32;
+    public int chunkSize = 10;
     [HideInInspector]
-    public float voxelSize = 0.1f;
-    int loadRadius = 3;
-    int renderDistance = 2;
+    public float voxelSize = 1f;
+    int loadRadius = 10;
+    int renderDistance = 9;
 
     public GameObject chunkPrefab;
     private Dictionary<Vector3Int, GameObject> chunkObjectCache = new Dictionary<Vector3Int, GameObject>();
@@ -31,7 +31,7 @@ public class WorldController : MonoBehaviour
     {
         Debug.Log("Persistent Data Path: " + Application.persistentDataPath);
         
-        player = Instantiate(playerPrefab, new Vector3(0f, 10f, 0f), transform.rotation);
+        player = Instantiate(playerPrefab, new Vector3(0f, 0f, 0f), transform.rotation);
         savePath = Path.Combine(Application.persistentDataPath, "WorldData");
         chunkRenderer = new ChunkRenderer();
 
@@ -258,7 +258,7 @@ public class WorldController : MonoBehaviour
 
         if (!File.Exists(filePath))
         {
-            chunk.Generate(chunkSize, 15, 0.01f, 0.08f, 0.5f, chunkPosition);
+            chunk.Generate(this, chunkSize, 100f, 0.01f, 0.1f, 0.5f, chunkPosition);
             return chunk;
         }
 

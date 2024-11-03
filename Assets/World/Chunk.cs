@@ -21,46 +21,42 @@ public class Chunk
         voxelMap[position.x, position.y, position.z] = voxel;
     }
 
-    public void Generate(int chunkSize, float terrainHeight, float terrainFrequency, float tunnelFrequency, float tunnelThreshold, Vector3Int chunkPosition)
+    public void Generate(WorldController worldController, int chunkSize, float terrainHeight, float terrainFrequency, float tunnelFrequency, float tunnelThreshold, Vector3Int chunkPosition)
     {
+        float voxelSize = worldController.voxelSize;
+
         for (int x = 0; x < chunkSize; x++)
         {
             for (int z = 0; z < chunkSize; z++)
             {
-                // Calculate global X and Z positions
-                int globalX = x + chunkPosition.x * chunkSize;
-                int globalZ = z + chunkPosition.z * chunkSize;
+                // Calculate global positions in world space using voxelSize
+                float globalX = (x + chunkPosition.x * chunkSize) * voxelSize;
+                float globalZ = (z + chunkPosition.z * chunkSize) * voxelSize;
 
-                // 2D Perlin noise for terrain height at (x, z)
+                // Apply 2D Perlin noise for terrain height, yielding a natural continuous density
                 float terrainHeightAtXZ = Mathf.PerlinNoise(globalX * terrainFrequency, globalZ * terrainFrequency) * terrainHeight;
 
                 for (int y = 0; y < chunkSize; y++)
                 {
-                    // Calculate global Y position
-                    int globalY = y + chunkPosition.y * chunkSize;
+                    // Calculate global Y position in world space using voxelSize
+                    float globalY = (y + chunkPosition.y * chunkSize) * voxelSize;
 
-                    // Determine initial density based on terrain height
-                    float density = (globalY <= terrainHeightAtXZ) ? 1.0f : 0.0f;
+                    // Base density based on height map
+                    float heightDensity = Mathf.Clamp01((terrainHeightAtXZ - globalY) / terrainHeight);
 
-                    // Apply 3D Perlin noise for varied, winding tunnels
-                    if (density > 0.0f) // Only apply tunnels below the terrain surface
-                    {
-                        // 3D noise-based tunnel generation
-                        float tunnelNoiseX = Mathf.PerlinNoise(globalY * tunnelFrequency, globalZ * tunnelFrequency);
-                        float tunnelNoiseY = Mathf.PerlinNoise(globalX * tunnelFrequency, globalZ * tunnelFrequency);
-                        float tunnelNoiseZ = Mathf.PerlinNoise(globalX * tunnelFrequency, globalY * tunnelFrequency);
+                    // 3D Perlin noise for tunnels based on world-space coordinates
+                    float tunnelNoise = Mathf.PerlinNoise(globalX * tunnelFrequency, globalY * tunnelFrequency)
+                                      * Mathf.PerlinNoise(globalY * tunnelFrequency, globalZ * tunnelFrequency)
+                                      * Mathf.PerlinNoise(globalX * tunnelFrequency, globalZ * tunnelFrequency);
 
-                        // Average out the 3D noises to create winding, organic shapes
-                        float tunnelNoise = (tunnelNoiseX + tunnelNoiseY + tunnelNoiseZ) / 3.0f;
+                    // Adjust density smoothly based on tunnel noise and threshold
+                    float tunnelDensity = Mathf.Clamp01((tunnelThreshold - tunnelNoise) / tunnelThreshold);
 
-                        if (tunnelNoise > tunnelThreshold)
-                        {
-                            density = 0.0f; // Set as air if tunnel threshold is exceeded
-                        }
-                    }
+                    // Final density combines height density with tunnel modification
+                    float density = heightDensity * tunnelDensity;
 
                     // Determine voxel type based on density threshold
-                    int type = (density > 0.0f) ? 1 : 0;
+                    int type = (density > 0.5f) ? 1 : 0;
 
                     // Create voxel with the calculated type and density
                     Voxel voxel = new Voxel { type = type, isOpaque = (type == 1), density = density };
@@ -69,7 +65,6 @@ public class Chunk
             }
         }
     }
-
 }
 
 public struct Voxel
