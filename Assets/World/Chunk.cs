@@ -53,10 +53,18 @@ public class Chunk
                     float tunnelDensity = Mathf.Clamp01((tunnelThreshold - tunnelNoise) / tunnelThreshold);
 
                     // Final density combines height density with tunnel modification
-                    float density = heightDensity * tunnelDensity;
+                    float noise = heightDensity * tunnelDensity;
+
+                    float density;
+
+                    // Set random density in specified ranges
+                    if (noise < 0.5f)
+                        density = noise;
+                    else
+                        density = noise;
 
                     // Determine voxel type based on density threshold
-                    int type = (density > 0.5f) ? 1 : 0;
+                    int type = (noise > 0.5f) ? 1 : 0;
 
                     // Create voxel with the calculated type and density
                     Voxel voxel = new Voxel { type = type, isOpaque = (type == 1), density = density };
@@ -65,6 +73,9 @@ public class Chunk
             }
         }
     }
+
+
+
 }
 
 public struct Voxel
