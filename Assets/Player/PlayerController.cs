@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     float tempGravity = 0.5f;
     public GameObject head;
     public GameObject graphics;
+    public GameObject cam;
 
     float moveForce = 4f;
     float jumpForce = 12f;
@@ -35,6 +36,10 @@ public class PlayerController : MonoBehaviour
         // Rotate the camera based on mouse input
         yRotation += Input.GetAxisRaw("Mouse X") * sensitivity;
         xRotation -= Mathf.Clamp(Input.GetAxisRaw("Mouse Y") * sensitivity, -100f, 100f);
+        // Rotate the player visuals
+        graphics.transform.localEulerAngles = new Vector3(0f, yRotation, 0f);
+        cam.transform.localEulerAngles = new Vector3(xRotation, 0f, 0f);
+        head.transform.localEulerAngles = new Vector3(xRotation / 2f, 0f, 0f);
 
         // Check if jump is attempted
         if (Input.GetKeyDown(KeyCode.Space))
@@ -61,10 +66,6 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Rotate the player visuals
-        graphics.transform.localEulerAngles = new Vector3(0f, yRotation, 0f);
-        head.transform.localEulerAngles = new Vector3(xRotation, 0f, 0f);
-
         // Apply gravity force
         if (applyGravity)
             ApplyForce(Vector3.down * tempGravity, false, true);
