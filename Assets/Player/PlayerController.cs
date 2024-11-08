@@ -31,6 +31,11 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
     }
 
+    public void Init(WorldController _worldController)
+    {
+        worldController = _worldController;
+    }
+
     void Update()
     {
         // Rotate the camera based on mouse input
@@ -61,6 +66,11 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.G))
         {
             applyGravity = !applyGravity;
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            //Physics.Raycast();
         }
     }
 
