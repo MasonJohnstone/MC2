@@ -191,7 +191,7 @@ public class WorldController : MonoBehaviour
             // Create required chunks up to a limit of 7 at a time, in order of proximity
             foreach (var chunkPosition in requiredChunkPositions)
             {
-                if (!chunkObjectCache.ContainsKey(chunkPosition) && chunksCreated < 7)
+                if (!chunkObjectCache.ContainsKey(chunkPosition) && chunksCreated < 1)
                 {
                     float worldChunkSize = chunkSize * voxelSize;
 
@@ -330,6 +330,11 @@ public class WorldController : MonoBehaviour
         // Initialize the chunk with the generated or loaded voxel map
         chunk.Init(voxelMap);
         return chunk;
+    }
+
+    void UpdateChunk(Chunk chunk, Voxel[,,] voxelMap)
+    {
+        chunk.Update(voxelMap);
     }
 
     Voxel[,,] GenerateChunkVoxelMap(float terrainHeight, float terrainFrequency, float tunnelFrequency, float tunnelThreshold, Vector3Int chunkPosition)

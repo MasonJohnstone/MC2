@@ -20,6 +20,11 @@ public class Chunk
     {
         voxelMap[position.x, position.y, position.z] = voxel;
     }
+
+    public void Update(Voxel[,,] _voxelMap)
+    {
+        voxelMap = _voxelMap;
+    }
 }
 
 public struct Voxel
