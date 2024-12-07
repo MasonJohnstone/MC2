@@ -5,14 +5,16 @@ using UnityEngine;
 public class ChunkRenderer
 {
     private MarchingCubes marchingCubes;
+    WorldController worldController;
 
-    public ChunkRenderer()
+    public ChunkRenderer(WorldController _worldController)
     {
         // Initialize MarchingCubes once in the constructor with a surface threshold (e.g., 0.5f)
         marchingCubes = new MarchingCubes(0.5f);
+        worldController = _worldController;
     }
 
-    public void SetMeshData(WorldController worldController, Chunk chunkData, Vector3Int chunkPosition, GameObject chunkObject)
+    public void SetMeshData(ChunkData chunkData, GameObject chunkObject)
     {
         List<Vector3> chunkVertices = new List<Vector3>();
         List<int> chunkTriangles = new List<int>();
@@ -38,10 +40,10 @@ public class ChunkRenderer
                     z < 0 ? -1 : z >= chunkSize ? 1 : 0
                 );
 
-                Vector3Int neighborPosition = chunkPosition + neighborOffset;
+                Vector3Int neighborPosition = chunkData.chunkPosition + neighborOffset;
 
                 // Try to get the neighboring chunk
-                if (worldController.chunkDataCache.TryGetValue(neighborPosition, out Chunk neighborChunk))
+                if (worldController.chunkDataCache.TryGetValue(neighborPosition, out ChunkData neighborChunk))
                 {
                     // Calculate local position within the neighboring chunk
                     int localX = (x + chunkSize) % chunkSize;

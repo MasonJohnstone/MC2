@@ -43,8 +43,8 @@ public class PlayerController : MonoBehaviour
         xRotation -= Mathf.Clamp(Input.GetAxisRaw("Mouse Y") * sensitivity, -100f, 100f);
         // Rotate the player visuals
         graphics.transform.localEulerAngles = new Vector3(0f, yRotation, 0f);
-        cam.transform.localEulerAngles = new Vector3(xRotation, 0f, 0f);
-        head.transform.localEulerAngles = new Vector3(xRotation / 2f, 0f, 0f);
+        //cam.transform.localEulerAngles = new Vector3(xRotation, 0f, 0f);
+        head.transform.localEulerAngles = new Vector3(xRotation, 0f, 0f);
 
         // Check if jump is attempted
         if (Input.GetKeyDown(KeyCode.Space))
@@ -59,9 +59,85 @@ public class PlayerController : MonoBehaviour
 
             if (hit.collider)
             {
-                //WorldController.Break
+                Vector3 targetPosition = hit.point + head.transform.forward * 0.1f; // Project further from hit point
+                Vector3 targetPositionAdjusted = targetPosition / (worldController.chunkSize * worldController.voxelSize);
+
+                // Determine chunk position in the world
+                Vector3Int chunkPosition = new Vector3Int(
+                    Mathf.FloorToInt(targetPositionAdjusted.x),
+                    Mathf.FloorToInt(targetPositionAdjusted.y),
+                    Mathf.FloorToInt(targetPositionAdjusted.z)
+                );
+
+                // Convert chunkPosition from Vector3Int to Vector3
+                Vector3 chunkPositionVector = new Vector3(chunkPosition.x, chunkPosition.y, chunkPosition.z);
+
+                // Get the chunk's real-world position
+                Vector3 chunkWorldPosition = chunkPositionVector * worldController.chunkSize * worldController.voxelSize;
+
+
+                // Calculate the voxel position within the chunk
+                Vector3 localVoxelPosition = (targetPosition - chunkWorldPosition) / worldController.voxelSize;
+                Vector3Int voxelPosition = new Vector3Int(
+                    Mathf.RoundToInt(localVoxelPosition.x),
+                    Mathf.RoundToInt(localVoxelPosition.y),
+                    Mathf.RoundToInt(localVoxelPosition.z)
+                );
+
+                // Access the voxel map within the chunk
+                Voxel[,,] voxelMap = worldController.chunkDataCache[chunkPosition].voxelMap;
+
+                // Update the voxel at the calculated local position
+                voxelMap[voxelPosition.x, voxelPosition.y, voxelPosition.z] = new Voxel { type = 0, density = 0f };
+
+                // Update the chunk with the modified voxel map
+                worldController.UpdateChunk(worldController.GetChunkAtPosition(chunkPosition), voxelMap);
             }
         }
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            RaycastHit hit;
+            Physics.Raycast(head.transform.position + new Vector3(0f, 0.225f, 0f), head.transform.forward, out hit);
+
+            if (hit.collider)
+            {
+                Vector3 targetPosition = hit.point + head.transform.forward * -0.1f; // Project further from hit point
+                Vector3 targetPositionAdjusted = targetPosition / (worldController.chunkSize * worldController.voxelSize);
+
+                // Determine chunk position in the world
+                Vector3Int chunkPosition = new Vector3Int(
+                    Mathf.FloorToInt(targetPositionAdjusted.x),
+                    Mathf.FloorToInt(targetPositionAdjusted.y),
+                    Mathf.FloorToInt(targetPositionAdjusted.z)
+                );
+
+                // Convert chunkPosition from Vector3Int to Vector3
+                Vector3 chunkPositionVector = new Vector3(chunkPosition.x, chunkPosition.y, chunkPosition.z);
+
+                // Get the chunk's real-world position
+                Vector3 chunkWorldPosition = chunkPositionVector * worldController.chunkSize * worldController.voxelSize;
+
+
+                // Calculate the voxel position within the chunk
+                Vector3 localVoxelPosition = (targetPosition - chunkWorldPosition) / worldController.voxelSize;
+                Vector3Int voxelPosition = new Vector3Int(
+                    Mathf.RoundToInt(localVoxelPosition.x),
+                    Mathf.RoundToInt(localVoxelPosition.y),
+                    Mathf.RoundToInt(localVoxelPosition.z)
+                );
+
+                // Access the voxel map within the chunk
+                Voxel[,,] voxelMap = worldController.chunkDataCache[chunkPosition].voxelMap;
+
+                // Update the voxel at the calculated local position
+                voxelMap[voxelPosition.x, voxelPosition.y, voxelPosition.z] = new Voxel { type = 1, density = 1f };
+
+                // Update the chunk with the modified voxel map
+                worldController.UpdateChunk(worldController.GetChunkAtPosition(chunkPosition), voxelMap);
+            }
+        }
+
 
         if (Input.GetKeyDown(KeyCode.G))
         {

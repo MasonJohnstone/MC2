@@ -23,7 +23,7 @@ public class WorldController : MonoBehaviour
 
     public GameObject chunkPrefab;
     private Dictionary<Vector3Int, GameObject> chunkObjectCache = new Dictionary<Vector3Int, GameObject>();
-    public Dictionary<Vector3Int, Chunk> chunkDataCache = new Dictionary<Vector3Int, Chunk>();
+    public Dictionary<Vector3Int, ChunkData> chunkDataCache = new Dictionary<Vector3Int, ChunkData>();
     private string savePath;
     ChunkRenderer chunkRenderer;
     private List<Vector3Int> requiredChunkPositions = new List<Vector3Int>();
@@ -33,8 +33,9 @@ public class WorldController : MonoBehaviour
         Debug.Log("Persistent Data Path: " + Application.persistentDataPath);
         
         player = Instantiate(playerPrefab, new Vector3(0f, 0f, 0f), transform.rotation);
+        player.GetComponent<PlayerController>().Init(this);
         savePath = Path.Combine(Application.persistentDataPath, "WorldData");
-        chunkRenderer = new ChunkRenderer();
+        chunkRenderer = new ChunkRenderer(this);
 
         if (!Directory.Exists(savePath))
         {
@@ -205,7 +206,7 @@ public class WorldController : MonoBehaviour
                     chunkObject.name = $"Chunk_{chunkPosition}";
 
                     // Set mesh data for the new chunk
-                    chunkRenderer.SetMeshData(this, chunkDataCache[chunkPosition], chunkPosition, chunkObject);
+                    chunkRenderer.SetMeshData(chunkDataCache[chunkPosition], chunkObject);
                     chunkObjectCache[chunkPosition] = chunkObject;
 
                     chunksCreated++;
@@ -218,7 +219,7 @@ public class WorldController : MonoBehaviour
         }
     }
 
-    private void SaveChunk(Chunk chunk, string filePath)
+    private void SaveChunk(ChunkData chunk, string filePath)
     {
         string tempFilePath = filePath + ".tmp"; // Define tempFilePath here to use in all parts of the function
 
@@ -240,7 +241,8 @@ public class WorldController : MonoBehaviour
                     {
                         for (int z = 0; z < chunkSize; z++)
                         {
-                            Voxel voxel = chunk.GetVoxel(new Vector3Int(x, y, z));
+                            // Voxel voxel = chunk.GetVoxel(new Vector3Int(x, y, z));
+                            Voxel voxel = chunk.voxelMap[x, y, z];
                             writer.Write(voxel.type);
                             writer.Write(voxel.density);
                         }
@@ -285,16 +287,16 @@ public class WorldController : MonoBehaviour
         foreach (var chunkEntry in chunkDataCache)
         {
             Vector3Int chunkPosition = chunkEntry.Key;
-            Chunk chunk = chunkEntry.Value;
+            ChunkData chunk = chunkEntry.Value;
 
             string chunkFilePath = Path.Combine(savePath, $"chunk_{chunkPosition.x}_{chunkPosition.y}_{chunkPosition.z}.dat");
             SaveChunk(chunk, chunkFilePath);
         }
     }
     
-    private Chunk LoadChunk(string filePath, Vector3Int chunkPosition)
+    private ChunkData LoadChunk(string filePath, Vector3Int chunkPosition)
     {
-        Chunk chunk = new Chunk();
+        ChunkData chunk = new ChunkData();
         Voxel[,,] voxelMap = new Voxel[chunkSize, chunkSize, chunkSize];
 
         if (!File.Exists(filePath))
@@ -328,13 +330,36 @@ public class WorldController : MonoBehaviour
         }
 
         // Initialize the chunk with the generated or loaded voxel map
-        chunk.Init(voxelMap);
+        chunk.Init(voxelMap, chunkPosition);
         return chunk;
     }
 
-    void UpdateChunk(Chunk chunk, Voxel[,,] voxelMap)
+    public void UpdateChunk(ChunkData chunk, Voxel[,,] voxelMap)
     {
         chunk.Update(voxelMap);
+        
+        List<ChunkData> adjacentChunks = new List<ChunkData>();
+        
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int y = -1; y <= 1; y++)
+            {
+                for (int z = -1; z <= 1; z++)
+                {
+                    ChunkData adjacentChunk = GetChunkAtPosition(chunk.chunkPosition + new Vector3Int(x, y, z));
+
+                    if (adjacentChunk != null)
+                    {
+                        adjacentChunks.Add(adjacentChunk);
+                    }
+                }
+            }
+        }
+        
+        foreach (ChunkData adjacentChunk in adjacentChunks)
+        {
+            chunkRenderer.SetMeshData(adjacentChunk, chunkObjectCache[adjacentChunk.chunkPosition]);
+        }
     }
 
     Voxel[,,] GenerateChunkVoxelMap(float terrainHeight, float terrainFrequency, float tunnelFrequency, float tunnelThreshold, Vector3Int chunkPosition)
@@ -373,6 +398,15 @@ public class WorldController : MonoBehaviour
                     float noise = heightDensity * tunnelDensity;
 
                     float density = noise;
+                    //if (noise < 0.5f)
+                    //{
+                    //    density = 0f;
+                    //}
+                    //else
+                    //{
+                    //    density = 1f;
+                    //}
+
 
                     // Determine voxel type based on density threshold
                     int type = (noise > 0.5f) ? 1 : 0;
@@ -388,7 +422,7 @@ public class WorldController : MonoBehaviour
         return voxelMap;
     }
 
-    public Chunk GetChunkFromCacheAtPosition(Vector3Int chunkPosition)
+    public ChunkData GetChunkAtPosition(Vector3Int chunkPosition)
     {
         return chunkDataCache[chunkPosition];
     }
