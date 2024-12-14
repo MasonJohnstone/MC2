@@ -15,11 +15,11 @@ public class WorldController : MonoBehaviour
     private Vector3Int playerChunkPosition;
 
     [HideInInspector]
-    public int chunkSize = 10;
+    public int chunkSize = 20;
     [HideInInspector]
-    public float voxelSize = 1f;
-    int loadRadius = 5;
-    int renderDistance = 4;
+    public float voxelSize = 0.2f;
+    int loadRadius = 10;
+    int renderDistance = 9;
 
     public GameObject chunkPrefab;
     private Dictionary<Vector3Int, GameObject> chunkObjectCache = new Dictionary<Vector3Int, GameObject>();
@@ -243,7 +243,8 @@ public class WorldController : MonoBehaviour
                         {
                             // Voxel voxel = chunk.GetVoxel(new Vector3Int(x, y, z));
                             Voxel voxel = chunk.voxelMap[x, y, z];
-                            writer.Write(voxel.type);
+                            writer.Write(voxel.id);
+                            writer.Write((byte)voxel.type);
                             writer.Write(voxel.density);
                         }
                     }
@@ -316,10 +317,11 @@ public class WorldController : MonoBehaviour
                     {
                         for (int z = 0; z < chunkSize; z++)
                         {
-                            int type = reader.ReadInt32();
+                            int id = reader.ReadInt32();
+                            Type type = (Type)reader.ReadByte();
                             float density = reader.ReadSingle();
 
-                            Voxel voxel = new Voxel { type = type, density = density };
+                            Voxel voxel = new Voxel { id = id, type = type, density = density };
                             voxelMap[x, y, z] = voxel;
                         }
                     }
@@ -409,10 +411,10 @@ public class WorldController : MonoBehaviour
 
 
                     // Determine voxel type based on density threshold
-                    int type = (noise > 0.5f) ? 1 : 0;
+                    int id = (noise > 0.5f) ? 1 : 0;
 
                     // Create voxel with the calculated type and density and set it in the voxel map
-                    Voxel voxel = new Voxel { type = type, density = density };
+                    Voxel voxel = new Voxel { id = id, type = Type.terrain, density = density };
                     voxelMap[x, y, z] = voxel;
                 }
             }

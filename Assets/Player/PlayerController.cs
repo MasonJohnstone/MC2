@@ -88,7 +88,7 @@ public class PlayerController : MonoBehaviour
                 Voxel[,,] voxelMap = worldController.chunkDataCache[chunkPosition].voxelMap;
 
                 // Update the voxel at the calculated local position
-                voxelMap[voxelPosition.x, voxelPosition.y, voxelPosition.z] = new Voxel { type = 0, density = 0f };
+                voxelMap[voxelPosition.x, voxelPosition.y, voxelPosition.z] = new Voxel { id = 0,  type = Type.none, density = 0f };
 
                 // Update the chunk with the modified voxel map
                 worldController.UpdateChunk(worldController.GetChunkAtPosition(chunkPosition), voxelMap);
@@ -131,7 +131,7 @@ public class PlayerController : MonoBehaviour
                 Voxel[,,] voxelMap = worldController.chunkDataCache[chunkPosition].voxelMap;
 
                 // Update the voxel at the calculated local position
-                voxelMap[voxelPosition.x, voxelPosition.y, voxelPosition.z] = new Voxel { type = 1, density = 1f };
+                voxelMap[voxelPosition.x, voxelPosition.y, voxelPosition.z] = new Voxel { id = 2, type = Type.block, density = 0f };
 
                 // Update the chunk with the modified voxel map
                 worldController.UpdateChunk(worldController.GetChunkAtPosition(chunkPosition), voxelMap);

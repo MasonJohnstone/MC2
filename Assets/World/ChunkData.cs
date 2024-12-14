@@ -38,5 +38,5 @@ public struct Voxel
 
 public enum Type
 {
-    block, terrain
+    none, block, terrain
 }
